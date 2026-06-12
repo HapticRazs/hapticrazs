@@ -1,0 +1,18 @@
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  background: var(--orange);
+  border-radius: 50%;
+  margin: -3.5px 0 0 -3.5px;
+  pointer-events: none;
+  z-index: 99999;
+  will-change: transform;
+  transition: width 0.15s, height 0.15s, margin 0.15s, opacity 0.15s;
+}
+
+@media (pointer: coarse) {
+  .cursor-dot { display: none; }
+}

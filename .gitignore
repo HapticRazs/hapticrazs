@@ -2,3 +2,7 @@ node_modules
 dist
 .DS_Store
 *.local
+backend/analytics.db
+backend/.env
+backend/node_modules
+public/uploads/

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './Home.css'
 
 const projects = [
@@ -8,15 +8,8 @@ const projects = [
     subtitle: 'Cinematography & Directing',
     behanceId: '240308603',
     behanceUrl: 'https://www.behance.net/gallery/240308603/FilmReel2026_AkshatGobind',
-    desc: 'Arri Alexa Mini, RED cameras, and multi-camera productions',
-  },
-  {
-    id: 'vfx-reel',
-    title: 'VFX Reel 2026',
-    subtitle: 'Visual Effects',
-    behanceId: '218145705',
-    behanceUrl: 'https://www.behance.net/gallery/218145705/VFXReel2026_AkshatGobind',
-    desc: 'Particle simulation, compositing, and CGI integration',
+    desc: 'Arri Alexa Mini, RED cameras, multi-camera productions and commercial work.',
+    tag: 'Film',
   },
   {
     id: 'resurgence',
@@ -24,23 +17,8 @@ const projects = [
     subtitle: 'Short Film VFX',
     behanceId: '239924089',
     behanceUrl: 'https://www.behance.net/gallery/239924089/ResurgenceShortFilm_Breakdown',
-    desc: 'A VFX breakdown of a short sci-fi film',
-  },
-  {
-    id: 'dreamers',
-    title: "A Dreamer's Journey",
-    subtitle: 'Film',
-    behanceId: '239925951',
-    behanceUrl: 'https://www.behance.net/gallery/239925951/A-Dreamers-Journey',
-    desc: 'A narrative short film project',
-  },
-  {
-    id: 'gatorade',
-    title: 'Gatorade — Become Greatness',
-    subtitle: 'Commercial',
-    behanceId: '239924297',
-    behanceUrl: 'https://www.behance.net/gallery/239924297/Gatorade-Become-Greatness',
-    desc: 'Commercial concept production',
+    desc: 'VFX breakdown of a short sci-fi film — particles, compositing, CGI integration.',
+    tag: 'VFX',
   },
   {
     id: 'bird',
@@ -48,15 +26,49 @@ const projects = [
     subtitle: 'Houdini Simulation',
     behanceId: '217317251',
     behanceUrl: 'https://www.behance.net/gallery/217317251/Bird-Murmuration',
-    desc: 'Particle and water simulation in Houdini',
+    desc: 'Large-scale particle simulation and water effects built in Houdini.',
+    tag: 'Simulation',
+  },
+  {
+    id: 'gatorade',
+    title: 'Gatorade — Become Greatness',
+    subtitle: 'Commercial',
+    behanceId: '239924297',
+    behanceUrl: 'https://www.behance.net/gallery/239924297/Gatorade-Become-Greatness',
+    desc: 'High-energy commercial concept — shot, directed, and edited.',
+    tag: 'Commercial',
+  },
+  {
+    id: 'dreamers',
+    title: "A Dreamer's Journey",
+    subtitle: 'Narrative Film',
+    behanceId: '239925951',
+    behanceUrl: 'https://www.behance.net/gallery/239925951/A-Dreamers-Journey',
+    desc: 'A visual narrative short film exploring movement and identity.',
+    tag: 'Film',
+  },
+  {
+    id: 'awakening',
+    title: 'Awakening',
+    subtitle: 'Senior Capstone — VFX',
+    behanceId: '217317013',
+    behanceUrl: 'https://www.behance.net/gallery/217317013/Awakening',
+    desc: 'Houdini particles & Nuke compositing — senior capstone project.',
+    tag: 'VFX',
   },
 ]
 
 const stats = [
-  { value: '4+', label: 'Years of Experience' },
-  { value: '10+', label: 'Projects Completed' },
-  { value: 'BFA', label: 'Visual Effects, SCAD' },
+  { value: '4+', label: 'Years Experience' },
+  { value: '10+', label: 'Projects' },
+  { value: 'BFA', label: 'VFX · SCAD' },
   { value: '∞', label: 'Frames Rendered' },
+]
+
+const tools = [
+  'Houdini', 'Nuke', 'Maya', 'Blender', 'After Effects',
+  'Substance Painter', 'Arri Alexa Mini', 'RED Cameras',
+  'Blackmagic 6K', 'Python', 'Particle Simulation', 'Compositing',
 ]
 
 function FadeIn({ children, className = '', delay = 0 }) {
@@ -64,7 +76,7 @@ function FadeIn({ children, className = '', delay = 0 }) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
-      { threshold: 0.1 }
+      { threshold: 0.08 }
     )
     const el = ref.current
     if (el) observer.observe(el)
@@ -77,54 +89,133 @@ function FadeIn({ children, className = '', delay = 0 }) {
   )
 }
 
+function ReelCard({ project, delay = 0 }) {
+  const trackPlay = () => {
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'video_play', label: project.title }),
+    }).catch(() => {})
+  }
+
+  return (
+    <FadeIn delay={delay} className="reel-card-wrap">
+      <a href={project.behanceUrl} target="_blank" rel="noreferrer" className="reel-card" onClick={trackPlay}>
+        <div className="reel-card__embed">
+          <iframe
+            src={`https://www.behance.net/embed/project/${project.behanceId}?ilo0=1`}
+            title={project.title}
+            allowFullScreen
+            allow="fullscreen; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
+            loading="lazy"
+          />
+          <div className="reel-card__hover-overlay">
+            <div className="reel-card__play-btn">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <polygon points="5,3 19,12 5,21" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div className="reel-card__info">
+          <span className="reel-card__tag">{project.tag}</span>
+          <h3 className="reel-card__title">{project.title}</h3>
+          <p className="reel-card__desc">{project.desc}</p>
+          <span className="reel-card__cta">View on Behance →</span>
+        </div>
+        <div className="reel-card__border-glow" />
+      </a>
+    </FadeIn>
+  )
+}
+
 export default function Home() {
+  const [heroIn, setHeroIn] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setHeroIn(true), 400)
+    // Track home page visit
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'page_view', label: '/' }),
+    }).catch(() => {})
+    return () => clearTimeout(t)
+  }, [])
+
+  const trackFeaturedPlay = () => {
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'video_play', label: 'Film Reel 2026 (Featured)' }),
+    }).catch(() => {})
+  }
+
   return (
     <main className="home">
 
-      {/* ── Hero ── */}
+      {/* ── Fullscreen Demo Reel Hero ── */}
       <section className="hero">
-        <div className="hero__bg-glow" />
-        <div className="hero__content">
-          <div className="hero__logo-wrap">
-            <img
-              src="https://static.wixstatic.com/media/dab4be_d7b3be02f8f44674892ec5b52e7fe661~mv2.png"
-              alt="Haptic Razs"
-              className="hero__logo"
-            />
+        <div className="hero__reel-wrap">
+          <iframe
+            src="https://www.behance.net/embed/project/218145705?ilo0=1"
+            title="VFX Demo Reel 2026 — Haptic Razs"
+            allowFullScreen
+            allow="fullscreen; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
+            className="hero__iframe"
+          />
+          <div className="hero__vignette" />
+        </div>
+
+        <div className={`hero__content${heroIn ? ' hero__content--in' : ''}`}>
+          <div className="hero__left">
+            <p className="hero__eyebrow">VFX Demo Reel · 2026</p>
+            <h1 className="hero__name">
+              Haptic<br />
+              <em>Razs</em>
+            </h1>
           </div>
-          <p className="hero__eyebrow">VFX Artist &amp; Filmmaker</p>
-          <h1 className="hero__title">
-            <span>Haptic</span>
-            <span className="gradient-text"> Razs</span>
-          </h1>
-          <p className="hero__name">Akshat Gobind</p>
-          <p className="hero__sub">
-            Crafting visual worlds through particle simulation, compositing, and
-            cinematography — currently a senior at SCAD Atlanta.
-          </p>
-          <div className="hero__cta">
-            <a href="/work" className="btn btn--primary">View Work</a>
-            <a
-              href="https://www.hapticrazs.com/_files/ugd/dab4be_9ad29b98070a441891fbcb509cbf2e38.pdf"
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn--ghost"
-            >
-              Shot Sheet ↗
-            </a>
+          <div className="hero__right">
+            <div className="hero__reel-label">
+              <p className="hero__reel-title">VFX Demo<br/>Reel 2026</p>
+              <p className="hero__reel-sub">Particle Simulation · Compositing · CGI</p>
+            </div>
+            <div className="hero__meta">
+              <p className="hero__role">VFX Artist &amp; Filmmaker</p>
+              <p className="hero__byline">Akshat Gobind · SCAD · Class of 2026</p>
+            </div>
+            <div className="hero__actions">
+              <a href="/work" className="btn btn--primary">View All Work</a>
+              <a href="/contact" className="btn btn--ghost">Hire Me</a>
+            </div>
           </div>
         </div>
+
         <div className="hero__scroll-hint">
           <span className="hero__scroll-line" />
-          <span className="hero__scroll-label">Scroll</span>
+          <p className="hero__scroll-label">Scroll</p>
         </div>
       </section>
 
+      {/* ── Marquee Strip ── */}
+      <div className="marquee-strip">
+        <div className="marquee-track">
+          {[...tools, ...tools].map((t, i) => (
+            <span key={i} className="marquee-item">
+              <span className="marquee-dot" />
+              {t}
+            </span>
+          ))}
+        </div>
+      </div>
+
       {/* ── Stats ── */}
-      <section className="stats">
-        <div className="stats__inner">
+      <section className="stats-section">
+        <div className="stats-grid">
           {stats.map((s, i) => (
-            <FadeIn key={s.label} delay={i * 80}>
+            <FadeIn key={s.label} delay={i * 90}>
               <div className="stat">
                 <span className="stat__value gradient-text">{s.value}</span>
                 <span className="stat__label">{s.label}</span>
@@ -134,53 +225,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Projects ── */}
-      <section className="reels" id="work">
-        <div className="reels__inner">
+      {/* ── Featured Reel: Film Reel 2026 ── */}
+      <section className="featured-section">
+        <div className="featured-inner">
           <FadeIn>
-            <p className="section-eyebrow">Selected Work</p>
             <div className="section-header">
-              <h2 className="section-title">Projects &amp; Reels</h2>
+              <div>
+                <p className="section-eyebrow">Featured</p>
+                <h2 className="section-title">Film Reel 2026</h2>
+              </div>
               <div className="section-line" />
-            </div>
-          </FadeIn>
-
-          <div className="reels__grid">
-            {projects.map((project, i) => (
-              <FadeIn key={project.id} delay={i * 80} className="reel-card-wrap">
-                <a
-                  href={project.behanceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="reel-card"
-                >
-                  <div className="reel-card__embed">
-                    <iframe
-                      src={`https://www.behance.net/embed/project/${project.behanceId}?ilo0=1`}
-                      title={project.title}
-                      allowFullScreen
-                      allow="clipboard-write"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                    />
-                    <div className="reel-card__overlay" />
-                    <div className="reel-card__view-btn">View on Behance ↗</div>
-                  </div>
-                  <div className="reel-card__info">
-                    <p className="reel-card__subtitle">{project.subtitle}</p>
-                    <h3 className="reel-card__title">{project.title}</h3>
-                    <p className="reel-card__desc">{project.desc}</p>
-                  </div>
-                  <div className="reel-card__border" />
-                </a>
-              </FadeIn>
-            ))}
-          </div>
-
-          <FadeIn>
-            <div className="behance-cta">
-              <p>See all projects on</p>
               <a
-                href="https://www.behance.net/akshatgobind1"
+                href="https://www.behance.net/gallery/240308603/FilmReel2026_AkshatGobind"
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn--ghost"
@@ -189,33 +245,92 @@ export default function Home() {
               </a>
             </div>
           </FadeIn>
+
+          <FadeIn>
+            <a
+              href="https://www.behance.net/gallery/240308603/FilmReel2026_AkshatGobind"
+              target="_blank"
+              rel="noreferrer"
+              className="featured-reel"
+              onClick={trackFeaturedPlay}
+            >
+              <div className="featured-reel__embed">
+                <iframe
+                  src="https://www.behance.net/embed/project/240308603?ilo0=1"
+                  title="Film Reel 2026 — Haptic Razs"
+                  allowFullScreen
+                  allow="fullscreen; picture-in-picture"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  loading="lazy"
+                />
+                <div className="featured-reel__overlay" />
+              </div>
+              <div className="featured-reel__meta">
+                <div>
+                  <span className="featured-reel__tag">Cinematography & Directing</span>
+                  <p className="featured-reel__desc">
+                    Four years of camera work across Arri Alexa Mini, RED, and Blackmagic productions —
+                    narrative shorts, reality TV, and commercial concept shoots.
+                  </p>
+                </div>
+                <span className="featured-reel__link">View on Behance →</span>
+              </div>
+            </a>
+          </FadeIn>
         </div>
       </section>
 
-      {/* ── Tools Strip ── */}
-      <section className="tools">
-        <div className="tools__inner">
-          <p className="tools__label">Tools &amp; Software</p>
-          <div className="tools__list">
-            {['Houdini', 'Nuke', 'Maya', 'Blender', 'After Effects', 'Substance Painter', 'Arri Alexa', 'RED'].map(t => (
-              <span key={t} className="tools__item">{t}</span>
+      {/* ── Projects Grid ── */}
+      <section className="projects-section">
+        <div className="projects-inner">
+          <FadeIn>
+            <div className="section-header">
+              <div>
+                <p className="section-eyebrow">Selected Work</p>
+                <h2 className="section-title">Projects &amp; Breakdowns</h2>
+              </div>
+              <div className="section-line" />
+            </div>
+          </FadeIn>
+
+          <div className="reels-grid">
+            {projects.map((project, i) => (
+              <ReelCard key={project.id} project={project} delay={i * 70} />
             ))}
           </div>
+
+          <FadeIn>
+            <div className="projects-cta">
+              <p>Full portfolio on</p>
+              <a href="https://www.behance.net/akshatgobind1" target="_blank" rel="noreferrer" className="btn btn--ghost">
+                Behance ↗
+              </a>
+              <a href="https://linktr.ee/Akshatgobind" target="_blank" rel="noreferrer" className="btn btn--ghost">
+                Linktree ↗
+              </a>
+              <a href="/work" className="btn btn--outline">All Projects</a>
+            </div>
+          </FadeIn>
         </div>
       </section>
 
-      {/* ── CTA Banner ── */}
-      <section className="cta-banner">
+      {/* ── CTA ── */}
+      <section className="cta-section">
+        <div className="cta-glow" />
         <FadeIn>
-          <div className="cta-banner__inner">
-            <h2 className="cta-banner__title">
+          <div className="cta-inner">
+            <p className="section-eyebrow">Open to Opportunities</p>
+            <h2 className="cta-title">
               Let's create something<br />
               <span className="gradient-text">extraordinary.</span>
             </h2>
-            <p className="cta-banner__sub">Open to freelance projects and collaborations.</p>
-            <a href="mailto:akshatgobind56@gmail.com" className="btn btn--primary">
-              Get in Touch
-            </a>
+            <p className="cta-sub">
+              Available for VFX work, film productions, and full-time studio positions.
+            </p>
+            <div className="cta-actions">
+              <a href="/contact" className="btn btn--primary">Hire Me</a>
+              <a href="mailto:akshatgobind56@gmail.com" className="btn btn--ghost">Email Directly ↗</a>
+            </div>
           </div>
         </FadeIn>
       </section>

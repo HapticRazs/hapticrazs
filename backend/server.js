@@ -1,0 +1,300 @@
+import express from 'express'
+import cors from 'cors'
+import { readFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join, extname } from 'path'
+import { DatabaseSync } from 'node:sqlite'
+import nodemailer from 'nodemailer'
+import multer from 'multer'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// ── Config ──────────────────────────────────────
+let env = {}
+const envPath = join(__dirname, '.env')
+if (existsSync(envPath)) {
+  readFileSync(envPath, 'utf-8').split('\n').forEach(line => {
+    const [k, ...v] = line.split('=')
+    if (k && !k.startsWith('#')) env[k.trim()] = v.join('=').trim()
+  })
+}
+const ADMIN_PASSWORD = env.ADMIN_PASSWORD || 'hapticrazs2026'
+const PORT = env.PORT || 3001
+const GMAIL_USER = env.GMAIL_USER || 'akshatgobind56@gmail.com'
+const GMAIL_APP_PASSWORD = env.GMAIL_APP_PASSWORD || ''
+
+// ── Upload dir (inside frontend public so Vite serves it at /uploads/) ──
+const UPLOADS_DIR = join(__dirname, '..', 'public', 'uploads')
+if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true })
+
+// ── Multer ────────────────────────────────────────
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+  filename: (req, file, cb) => {
+    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_')
+    cb(null, safe)
+  },
+})
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.mp4', '.mov']
+    cb(null, allowed.includes(extname(file.originalname).toLowerCase()))
+  },
+})
+
+// ── Database ─────────────────────────────────────
+const db = new DatabaseSync(join(__dirname, 'analytics.db'))
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event TEXT NOT NULL,
+    label TEXT,
+    ip TEXT,
+    ua TEXT,
+    referrer TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    company TEXT,
+    service TEXT,
+    budget TEXT,
+    message TEXT NOT NULL,
+    ip TEXT,
+    read INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    subtitle TEXT DEFAULT '',
+    category TEXT DEFAULT 'VFX',
+    year INTEGER DEFAULT 2024,
+    description TEXT DEFAULT '',
+    behance_id TEXT DEFAULT '',
+    behance_url TEXT DEFAULT '',
+    external_url TEXT DEFAULT '',
+    imdb_url TEXT DEFAULT '',
+    pbs_url TEXT DEFAULT '',
+    tags TEXT DEFAULT '[]',
+    featured INTEGER DEFAULT 0,
+    order_index INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at);
+  CREATE INDEX IF NOT EXISTS idx_events_label ON events(label);
+  CREATE INDEX IF NOT EXISTS idx_events_event ON events(event);
+`)
+
+// ── Seed projects if empty ────────────────────────
+const projectCount = db.prepare('SELECT COUNT(*) as n FROM projects').get()
+if (projectCount.n === 0) {
+  const ins = db.prepare(`
+    INSERT INTO projects (title,subtitle,category,year,description,behance_id,behance_url,external_url,imdb_url,pbs_url,tags,featured,order_index)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+  `)
+  const seed = [
+    ['VFX Reel 2026','Visual Effects Reel','VFX',2026,'Particle simulation, compositing, CGI integration, and fluid dynamics — compiled from 4 years of VFX work.','218145705','https://www.behance.net/gallery/218145705/VFXReel2026_AkshatGobind','','','','["vfx","reel"]',1,1],
+    ['Film Reel 2026','Cinematography & Directing','Film',2026,'Arri Alexa Mini, RED Cameras, multi-camera productions, narrative shorts, and commercial work.','240308603','https://www.behance.net/gallery/240308603/FilmReel2026_AkshatGobind','','','','["film","reel"]',1,2],
+    ['Resurgence — Breakdown','Short Film VFX Breakdown','VFX',2025,'Shot-by-shot VFX breakdown of a short sci-fi film — compositing, particles, CG environment integration.','239924089','https://www.behance.net/gallery/239924089/ResurgenceShortFilm_Breakdown','','https://www.imdb.com/title/tt37960145/','','["vfx","breakdown"]',0,3],
+    ['Awakening','Senior Capstone — VFX','VFX',2024,'Houdini particles & Nuke compositing — senior capstone project.','217317013','https://www.behance.net/gallery/217317013/Awakening','','','','["vfx"]',0,4],
+    ['Bird Murmuration','Houdini Simulation','Simulation',2024,'Large-scale flocking simulation and water effects built in Houdini using custom VEX expressions.','217317251','https://www.behance.net/gallery/217317251/Bird-Murmuration','','','','["vfx","simulation"]',0,5],
+    ["A Dreamer's Journey",'Narrative Short Film','Film',2025,'A visual narrative short film exploring identity, movement, and memory.','239925951','https://www.behance.net/gallery/239925951/A-Dreamers-Journey','','','','["film"]',0,6],
+    ['Gatorade — Become Greatness','Commercial Concept','Commercial',2025,'High-energy commercial concept — directed, shot, and edited with practical and digital effects.','239924297','https://www.behance.net/gallery/239924297/Gatorade-Become-Greatness','','','','["film","commercial"]',0,7],
+    ['ChefATL — Season 1','Television — Camera Operator','Film',2024,'Camera B operator on PBS series ChefATL — shot on Arri Alexa Mini. Multi-camera live food television production.','','','https://www.pbs.org/show/chefatl/','https://www.imdb.com/title/tt33341737/','https://www.pbs.org/show/chefatl/','["film","tv"]',0,8],
+    ['Underworld','Maya Volumetric FX','Simulation',2022,'Maya volumetric fog and atmospheric simulation — environment VFX.','217315571','https://www.behance.net/gallery/217315571/Underworld','','','','["vfx","simulation"]',0,9],
+    ['LED Volume','Director & Cinematographer','Film',2022,'Director and cinematographer on an LED volume production.','217315193','https://www.behance.net/gallery/217315193/LED-Volume','','','','["film"]',0,10],
+    ['Warped Road','3D Environment','VFX',2022,'3D environment modeling and procedural deformation using VEX.','217314979','https://www.behance.net/gallery/217314979/Warped-Road','','','','["vfx"]',0,11],
+    ['The Curse','Short Film','Film',2025,'Short film — cinematography, directing, and post-production.','239923463','https://www.behance.net/gallery/239923463/The-Curse','','','','["film"]',0,12],
+    ['RoboButler','Character Animation & Compositing','VFX',2023,'Full character pipeline — modeling, rigging, animation, and compositing.','217314453','https://www.behance.net/gallery/217314453/RoboButler','','','','["vfx","animation"]',0,13],
+  ]
+  seed.forEach(row => ins.run(...row))
+  console.log(`✅ Seeded ${seed.length} projects`)
+}
+
+// ── Mailer ────────────────────────────────────────
+let transporter = null
+if (GMAIL_APP_PASSWORD) {
+  transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD } })
+}
+async function sendEmailNotification(msg) {
+  if (!transporter) return
+  try {
+    await transporter.sendMail({
+      from: `"Haptic Razs Site" <${GMAIL_USER}>`,
+      to: GMAIL_USER,
+      subject: `New message from ${msg.name} — Haptic Razs`,
+      html: `<div style="font-family:sans-serif;max-width:600px;background:#0a0a0a;color:#eee;padding:32px;border-radius:8px">
+        <h2 style="color:#e87640;margin-top:0">New inquiry on hapticrazs.com</h2>
+        <p><strong>From:</strong> ${msg.name} &lt;<a href="mailto:${msg.email}" style="color:#e87640">${msg.email}</a>&gt;</p>
+        ${msg.company ? `<p><strong>Company:</strong> ${msg.company}</p>` : ''}
+        ${msg.service ? `<p><strong>Service:</strong> ${msg.service}</p>` : ''}
+        ${msg.budget ? `<p><strong>Budget:</strong> ${msg.budget}</p>` : ''}
+        <div style="background:#111;border:1px solid #222;border-radius:6px;padding:16px;margin-top:12px">
+          <p style="margin:0;color:#aaa;line-height:1.6">${msg.message.replace(/\n/g, '<br>')}</p>
+        </div>
+        <p style="margin-top:16px;font-size:12px;color:#444">View at <a href="http://localhost:${PORT}/admin" style="color:#e87640">localhost:${PORT}/admin</a></p>
+      </div>`,
+    })
+  } catch (err) { console.error('Email error:', err.message) }
+}
+
+// ── Express ──────────────────────────────────────
+const app = express()
+app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:4173'] }))
+app.use(express.json())
+app.use(express.static(join(__dirname, 'public')))
+
+const getIp = req => (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim()
+
+// ── Public: Projects ──────────────────────────────
+app.get('/api/projects', (req, res) => {
+  const rows = db.prepare('SELECT * FROM projects ORDER BY order_index ASC, id ASC').all()
+  res.json(rows.map(p => ({ ...p, tags: JSON.parse(p.tags || '[]') })))
+})
+
+// ── Public: Track event ────────────────────────────
+app.post('/api/track', (req, res) => {
+  const { event, label, referrer, ua } = req.body || {}
+  if (!event) return res.status(400).json({ error: 'event required' })
+  try {
+    db.prepare('INSERT INTO events (event,label,ip,ua,referrer) VALUES (?,?,?,?,?)')
+      .run(event, label || '', getIp(req), ua || req.headers['user-agent'] || '', referrer || '')
+    res.json({ ok: true })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// ── Public: Contact form ───────────────────────────
+app.post('/api/contact', async (req, res) => {
+  const { name, email, company, service, budget, message } = req.body || {}
+  if (!name || !email || !message) return res.status(400).json({ error: 'name, email, message required' })
+  try {
+    db.prepare('INSERT INTO messages (name,email,company,service,budget,message,ip) VALUES (?,?,?,?,?,?,?)')
+      .run(name, email, company || '', service || '', budget || '', message, getIp(req))
+    db.prepare('INSERT INTO events (event,label,ip,ua,referrer) VALUES (?,?,?,?,?)')
+      .run('contact_form', `from:${name}`, getIp(req), req.headers['user-agent'] || '', '')
+    await sendEmailNotification({ name, email, company, service, budget, message })
+    res.json({ ok: true })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// ── Admin auth ────────────────────────────────────
+function requireAdmin(req, res, next) {
+  const auth = req.headers['x-admin-password'] || req.query.pwd
+  if (auth !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' })
+  next()
+}
+
+// ── Admin: Stats ──────────────────────────────────
+app.get('/api/admin/stats', requireAdmin, (req, res) => {
+  const pv = {
+    total: db.prepare("SELECT COUNT(*) as n FROM events WHERE event='page_view'").get().n,
+    today: db.prepare("SELECT COUNT(*) as n FROM events WHERE event='page_view' AND date(created_at)=date('now')").get().n,
+    week: db.prepare("SELECT COUNT(*) as n FROM events WHERE event='page_view' AND created_at>=datetime('now','-7 days')").get().n,
+  }
+  const topPages = db.prepare("SELECT label,COUNT(*) as views FROM events WHERE event='page_view' GROUP BY label ORDER BY views DESC LIMIT 10").all()
+  const recentVisitors = db.prepare("SELECT label,ip,ua,referrer,created_at FROM events WHERE event='page_view' ORDER BY created_at DESC LIMIT 50").all()
+  const dailyViews = db.prepare("SELECT date(created_at) as day,COUNT(*) as views FROM events WHERE event='page_view' AND created_at>=datetime('now','-30 days') GROUP BY day ORDER BY day").all()
+
+  // Video analytics
+  const totalVideoPlays = db.prepare("SELECT COUNT(*) as n FROM events WHERE event='video_play'").get().n
+  const videoBreakdown = db.prepare(`
+    SELECT
+      label,
+      COUNT(*) as total_plays,
+      COUNT(DISTINCT ip) as unique_viewers,
+      MAX(created_at) as last_played,
+      SUM(CASE WHEN created_at>=datetime('now','-7 days') THEN 1 ELSE 0 END) as plays_week,
+      SUM(CASE WHEN created_at>=datetime('now','-30 days') THEN 1 ELSE 0 END) as plays_month
+    FROM events WHERE event='video_play'
+    GROUP BY label ORDER BY total_plays DESC
+  `).all()
+  const dailyVideoPlays = db.prepare("SELECT date(created_at) as day,COUNT(*) as plays FROM events WHERE event='video_play' AND created_at>=datetime('now','-30 days') GROUP BY day ORDER BY day").all()
+  const recentVideoPlays = db.prepare("SELECT label,ip,ua,created_at FROM events WHERE event='video_play' ORDER BY created_at DESC LIMIT 30").all()
+
+  const messages = db.prepare('SELECT * FROM messages ORDER BY created_at DESC LIMIT 100').all()
+  const unreadMessages = db.prepare('SELECT COUNT(*) as n FROM messages WHERE read=0').get().n
+
+  res.json({ pageViews: pv, topPages, recentVisitors, dailyViews, totalVideoPlays, videoBreakdown, dailyVideoPlays, recentVideoPlays, messages, unreadMessages })
+})
+
+// ── Admin: Mark message read ───────────────────────
+app.post('/api/admin/messages/:id/read', requireAdmin, (req, res) => {
+  db.prepare('UPDATE messages SET read=1 WHERE id=?').run(req.params.id)
+  res.json({ ok: true })
+})
+
+// ── Admin: Projects CRUD ──────────────────────────
+app.get('/api/admin/projects', requireAdmin, (req, res) => {
+  const rows = db.prepare('SELECT * FROM projects ORDER BY order_index ASC, id ASC').all()
+  res.json(rows.map(p => ({ ...p, tags: JSON.parse(p.tags || '[]') })))
+})
+
+app.post('/api/admin/projects', requireAdmin, (req, res) => {
+  const { title, subtitle, category, year, description, behance_id, behance_url, external_url, imdb_url, pbs_url, tags, featured, order_index } = req.body
+  if (!title) return res.status(400).json({ error: 'title required' })
+  const tagsArr = Array.isArray(tags) ? tags : (tags || '').split(',').map(t => t.trim()).filter(Boolean)
+  const result = db.prepare(`
+    INSERT INTO projects (title,subtitle,category,year,description,behance_id,behance_url,external_url,imdb_url,pbs_url,tags,featured,order_index)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+  `).run(title, subtitle||'', category||'VFX', year||new Date().getFullYear(), description||'', behance_id||'', behance_url||'', external_url||'', imdb_url||'', pbs_url||'', JSON.stringify(tagsArr), featured?1:0, order_index||0)
+  res.json({ ok: true, id: result.lastInsertRowid })
+})
+
+app.put('/api/admin/projects/:id', requireAdmin, (req, res) => {
+  const { title, subtitle, category, year, description, behance_id, behance_url, external_url, imdb_url, pbs_url, tags, featured, order_index } = req.body
+  if (!title) return res.status(400).json({ error: 'title required' })
+  const tagsArr = Array.isArray(tags) ? tags : (tags || '').split(',').map(t => t.trim()).filter(Boolean)
+  db.prepare(`
+    UPDATE projects SET title=?,subtitle=?,category=?,year=?,description=?,behance_id=?,behance_url=?,external_url=?,imdb_url=?,pbs_url=?,tags=?,featured=?,order_index=?,updated_at=datetime('now') WHERE id=?
+  `).run(title, subtitle||'', category||'VFX', year||new Date().getFullYear(), description||'', behance_id||'', behance_url||'', external_url||'', imdb_url||'', pbs_url||'', JSON.stringify(tagsArr), featured?1:0, order_index||0, req.params.id)
+  res.json({ ok: true })
+})
+
+app.delete('/api/admin/projects/:id', requireAdmin, (req, res) => {
+  db.prepare('DELETE FROM projects WHERE id=?').run(req.params.id)
+  res.json({ ok: true })
+})
+
+// ── Admin: File upload ────────────────────────────
+app.post('/api/admin/upload', requireAdmin, upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No valid file. Allowed: PDF, images, video.' })
+  res.json({ ok: true, filename: req.file.filename, size: req.file.size, url: `/uploads/${req.file.filename}` })
+})
+
+app.get('/api/admin/files', requireAdmin, (req, res) => {
+  try {
+    const files = readdirSync(UPLOADS_DIR).map(name => {
+      const stat = statSync(join(UPLOADS_DIR, name))
+      return { name, size: stat.size, modified: stat.mtime, url: `/uploads/${name}` }
+    }).sort((a, b) => new Date(b.modified) - new Date(a.modified))
+    res.json(files)
+  } catch { res.json([]) }
+})
+
+app.delete('/api/admin/files/:filename', requireAdmin, (req, res) => {
+  const name = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const fp = join(UPLOADS_DIR, name)
+  if (!existsSync(fp)) return res.status(404).json({ error: 'Not found' })
+  unlinkSync(fp)
+  res.json({ ok: true })
+})
+
+// ── Admin HTML + health ────────────────────────────
+app.get('/admin', (req, res) => res.sendFile(join(__dirname, 'admin.html')))
+app.get('/api/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }))
+
+app.listen(PORT, () => {
+  console.log(`\n🎬 Haptic Razs backend`)
+  console.log(`   API:    http://localhost:${PORT}/api/health`)
+  console.log(`   Admin:  http://localhost:${PORT}/admin  (pw: ${ADMIN_PASSWORD})\n`)
+})

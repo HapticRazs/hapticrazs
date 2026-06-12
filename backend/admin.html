@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Haptic Razs — Admin</title>
+<style>
+:root{--bg:#020202;--bg2:#080808;--card:#0d0d0d;--border:#1a1a1a;--border2:#242424;--text:#eee;--muted:#666;--dim:#333;--orange:#e87640;--red:#c03258;--grad:linear-gradient(135deg,#e87640,#c03258);--green:#3dba7a;--blue:#5b7fe8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:13px;line-height:1.5}
+a{color:inherit;text-decoration:none}
+
+/* Login */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center}
+.login-card h1{font-size:1.4rem;margin-bottom:.25rem}
+.login-card p{color:var(--muted);font-size:.82rem;margin-bottom:2rem}
+.login-card input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:5px;padding:.7rem 1rem;color:var(--text);font-size:.9rem;margin-bottom:1rem;outline:none;font-family:inherit}
+.login-card input:focus{border-color:var(--orange)}
+.btn-grad{background:var(--grad);color:#fff;border:none;border-radius:5px;padding:.7rem 1.5rem;font-size:.8rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:inherit;width:100%}
+.btn-grad:hover{opacity:.9}
+.login-err{color:#e05555;font-size:.75rem;margin-top:.5rem;display:none}
+
+/* Dashboard */
+#dash{display:none;min-height:100vh}
+.dash-header{position:sticky;top:0;background:rgba(2,2,2,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;z-index:200}
+.dash-logo{font-size:.95rem;font-weight:700;letter-spacing:.02em}
+.logo-grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.dash-right{display:flex;align-items:center;gap:.75rem}
+.dash-meta{font-size:.72rem;color:var(--muted)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted);padding:.35rem .9rem;border-radius:4px;cursor:pointer;font-size:.72rem;font-family:inherit;transition:all .2s}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+
+.dash-body{max-width:1400px;margin:0 auto;padding:1.5rem 2rem}
+
+/* Stat cards */
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.75rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.25rem 1rem}
+.stat-label{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.stat-val{font-size:2rem;font-weight:700;line-height:1;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-sub{font-size:.68rem;color:var(--dim);margin-top:.3rem}
+
+/* Tabs */
+.tabs{display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.tab-btn{padding:.45rem 1.1rem;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--muted);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:all .2s}
+.tab-btn:hover{border-color:var(--orange);color:var(--orange)}
+.tab-btn.active{background:var(--grad);border-color:transparent;color:#fff}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* Cards/tables */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-head h3{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem}
+.full{grid-column:1/-1}
+
+table{width:100%;border-collapse:collapse}
+th{padding:.65rem 1.25rem;text-align:left;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--border)}
+td{padding:.7rem 1.25rem;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(232,118,64,.03)}
+.empty{padding:2.5rem;text-align:center;color:var(--dim)}
+
+/* Badges */
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:2px;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.badge-vfx{background:rgba(232,118,64,.15);color:var(--orange)}
+.badge-film{background:rgba(192,50,88,.15);color:var(--red)}
+.badge-sim{background:rgba(91,127,232,.15);color:var(--blue)}
+.badge-com{background:rgba(61,186,122,.15);color:var(--green)}
+.badge-unread{background:rgba(232,118,64,.2);color:var(--orange)}
+.badge-read{background:rgba(40,40,40,.5);color:var(--muted)}
+.badge-feat{background:rgba(61,186,122,.15);color:var(--green)}
+
+/* Bar charts */
+.chart-wrap{padding:1.25rem}
+.bars{display:flex;align-items:flex-end;gap:3px;height:90px}
+.bar{flex:1;border-radius:2px 2px 0 0;min-width:3px;transition:background .15s;cursor:default;position:relative}
+.bar[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#222;color:#eee;padding:.3rem .6rem;border-radius:3px;white-space:nowrap;font-size:.68rem;pointer-events:none;z-index:10;margin-bottom:4px}
+.h-bars{display:flex;flex-direction:column;gap:6px;padding:1.25rem}
+.h-bar-row{display:flex;align-items:center;gap:.75rem}
+.h-bar-label{font-size:.72rem;color:var(--muted);width:155px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-bar-track{flex:1;background:var(--bg2);border-radius:2px;height:8px;overflow:hidden}
+.h-bar-fill{height:100%;background:var(--grad);border-radius:2px;transition:width .6s ease}
+.h-bar-count{font-size:.72rem;color:var(--orange);width:30px;text-align:right;flex-shrink:0}
+
+/* Video analytics */
+.plays{font-size:1.1rem;font-weight:700;color:var(--orange);text-align:right}
+.trend-up{color:var(--green);font-size:.7rem}
+.trend-flat{color:var(--dim);font-size:.7rem}
+
+/* Messages */
+.msg-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:.9rem;transition:border-color .2s}
+.msg-card.unread{border-color:rgba(232,118,64,.3)}
+.msg-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
+.msg-from{font-weight:600;font-size:.9rem}
+.msg-email{font-size:.75rem;color:var(--orange);margin-top:.15rem}
+.msg-date{font-size:.68rem;color:var(--dim);text-align:right}
+.msg-body{font-size:.82rem;color:var(--muted);line-height:1.65;border-top:1px solid var(--border);padding-top:.75rem}
+.msg-foot{margin-top:.9rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.msg-detail{font-size:.68rem;color:var(--dim)}
+.btn-sm{background:transparent;border:1px solid var(--border2);color:var(--muted);padding:.28rem .75rem;border-radius:3px;cursor:pointer;font-size:.68rem;font-family:inherit;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-sm:hover{border-color:var(--orange);color:var(--orange)}
+
+/* Projects */
+.proj-actions{display:flex;gap:.5rem;justify-content:flex-end}
+.btn-danger{background:transparent;border:1px solid rgba(192,50,88,.35);color:rgba(192,50,88,.65);padding:.28rem .75rem;border-radius:3px;cursor:pointer;font-size:.68rem;font-family:inherit;transition:all .2s}
+.btn-danger:hover{border-color:var(--red);color:var(--red)}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:500;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.open{display:flex}
+.modal-box{background:var(--card);border:1px solid var(--border2);border-radius:10px;width:100%;max-width:680px;max-height:92vh;overflow-y:auto}
+.modal-top{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--card);z-index:10}
+.modal-top h2{font-size:1rem;font-weight:600}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1;padding:.2rem}
+.modal-close:hover{color:var(--text)}
+.modal-form{padding:1.5rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.form-group label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.form-group input,.form-group select,.form-group textarea{background:var(--bg2);border:1px solid var(--border2);border-radius:5px;padding:.65rem .9rem;color:var(--text);font-size:.85rem;font-family:inherit;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--orange)}
+.form-group textarea{resize:vertical;min-height:75px}
+.form-group select option{background:#111}
+.form-check{display:flex;align-items:center;gap:.6rem;margin-bottom:1.25rem}
+.form-check input{width:16px;height:16px;accent-color:var(--orange)}
+.form-check label{font-size:.82rem;color:var(--muted);cursor:pointer}
+.modal-foot{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.75rem;justify-content:flex-end}
+.btn-primary{background:var(--grad);color:#fff;border:none;border-radius:5px;padding:.6rem 1.5rem;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-primary:hover{opacity:.85}
+.btn-cancel{background:transparent;border:1px solid var(--border2);color:var(--muted);border-radius:5px;padding:.6rem 1.25rem;font-size:.78rem;cursor:pointer;font-family:inherit}
+.btn-cancel:hover{color:var(--text);border-color:var(--muted)}
+
+/* Files */
+.upload-zone{border:2px dashed var(--border2);border-radius:8px;padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1.25rem}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--orange);background:rgba(232,118,64,.03)}
+.upload-zone p{color:var(--muted);font-size:.85rem;margin-bottom:.5rem}
+.upload-zone small{color:var(--dim);font-size:.72rem}
+.file-input{display:none}
+.file-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem;border-bottom:1px solid var(--border)}
+.file-item:last-child{border-bottom:none}
+.file-name{flex:1;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.file-size{font-size:.72rem;color:var(--dim);width:65px;text-align:right;flex-shrink:0}
+.file-date{font-size:.72rem;color:var(--dim);width:110px;text-align:right;flex-shrink:0}
+.file-actions{display:flex;gap:.4rem;flex-shrink:0}
+.upload-msg{font-size:.8rem;margin-top:.75rem;padding:.6rem 1rem;border-radius:4px;display:none}
+.upload-msg.ok{background:rgba(61,186,122,.1);color:var(--green);border:1px solid rgba(61,186,122,.2)}
+.upload-msg.err{background:rgba(192,50,88,.1);color:var(--red);border:1px solid rgba(192,50,88,.2)}
+
+@media(max-width:1000px){.stat-row{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}}
+@media(max-width:640px){.stat-row{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login">
+  <div class="login-card">
+    <h1>Haptic <span class="logo-grad">Razs</span></h1>
+    <p>Analytics &amp; Content Management</p>
+    <input type="password" id="pwd" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()" />
+    <button class="btn-grad" onclick="login()">Enter Dashboard</button>
+    <p class="login-err" id="login-err">Incorrect password</p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dash">
+  <header class="dash-header">
+    <div class="dash-logo">Haptic <span class="logo-grad">Razs</span> Admin</div>
+    <div class="dash-right">
+      <span class="dash-meta" id="last-upd">—</span>
+      <button class="btn-ghost" onclick="loadAll()">↻ Refresh</button>
+    </div>
+  </header>
+
+  <div class="dash-body">
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-label">Total Page Views</div><div class="stat-val" id="s-total">—</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card"><div class="stat-label">Today</div><div class="stat-val" id="s-today">—</div><div class="stat-sub">Page views</div></div>
+      <div class="stat-card"><div class="stat-label">This Week</div><div class="stat-val" id="s-week">—</div><div class="stat-sub">Last 7 days</div></div>
+      <div class="stat-card"><div class="stat-label">Video Plays</div><div class="stat-val" id="s-vplays">—</div><div class="stat-sub">All time</div></div>
+      <div class="stat-card"><div class="stat-label">Unread Messages</div><div class="stat-val" id="s-msgs">—</div><div class="stat-sub">New inquiries</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('overview',this)">Overview</button>
+      <button class="tab-btn" onclick="showTab('videos',this)">Videos</button>
+      <button class="tab-btn" onclick="showTab('visitors',this)">Visitors</button>
+      <button class="tab-btn" onclick="showTab('messages',this)">Messages</button>
+      <button class="tab-btn" onclick="showTab('projects',this)">Projects</button>
+      <button class="tab-btn" onclick="showTab('files',this)">Files</button>
+    </div>
+
+    <!-- Overview -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><h3>Daily Page Views (30 days)</h3></div>
+          <div class="chart-wrap"><div class="bars" id="chart-pv"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Daily Video Plays (30 days)</h3></div>
+          <div class="chart-wrap"><div class="bars" id="chart-vp"></div></div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><h3>Top Pages</h3></div>
+          <table><thead><tr><th>Page</th><th style="text-align:right">Views</th></tr></thead>
+          <tbody id="top-pages"></tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Top Videos by Plays</h3></div>
+          <div class="h-bars" id="top-videos-bars"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Videos -->
+    <div class="tab-panel" id="tab-videos">
+      <div class="card">
+        <div class="card-head">
+          <h3>All Projects — Video Analytics</h3>
+          <span id="video-total-label" style="font-size:.72rem;color:var(--muted)"></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Category</th>
+              <th>Year</th>
+              <th style="text-align:right">Total Plays</th>
+              <th style="text-align:right">Unique Viewers</th>
+              <th style="text-align:right">This Week</th>
+              <th style="text-align:right">This Month</th>
+              <th>Last Played</th>
+            </tr>
+          </thead>
+          <tbody id="video-breakdown"></tbody>
+        </table>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><h3>Video Plays — 30 Day Chart</h3></div>
+          <div class="chart-wrap"><div class="bars" id="chart-vp2"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Recent Video Activity</h3></div>
+          <table>
+            <thead><tr><th>Video</th><th>IP</th><th>Device</th><th>Time</th></tr></thead>
+            <tbody id="recent-plays"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visitors -->
+    <div class="tab-panel" id="tab-visitors">
+      <div class="card">
+        <div class="card-head"><h3>Recent Visitors (last 50)</h3></div>
+        <table>
+          <thead><tr><th>Page</th><th>IP</th><th>Referrer</th><th>Device</th><th>Time</th></tr></thead>
+          <tbody id="visitors-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="tab-panel" id="tab-messages">
+      <div id="messages-list"></div>
+    </div>
+
+    <!-- Projects CMS -->
+    <div class="tab-panel" id="tab-projects">
+      <div class="card">
+        <div class="card-head">
+          <h3>Projects (<span id="proj-count">0</span>)</h3>
+          <button class="btn-ghost" style="color:var(--orange);border-color:rgba(232,118,64,.4)" onclick="openModal()">+ Add Project</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th><th>Title</th><th>Category</th><th>Year</th>
+              <th>Behance ID</th><th>Featured</th>
+              <th style="text-align:right">Plays</th>
+              <th style="text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="projects-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Files -->
+    <div class="tab-panel" id="tab-files">
+      <div class="card" style="overflow:visible">
+        <div class="card-head"><h3>Upload File</h3></div>
+        <div style="padding:1.25rem">
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+            <p>Click to choose a file, or drag &amp; drop here</p>
+            <small>PDF, PNG, JPG, WebP, MP4, MOV &mdash; max 50 MB</small>
+          </div>
+          <div class="upload-msg" id="upload-msg"></div>
+          <input type="file" class="file-input" id="file-input" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.mp4,.mov" onchange="uploadFile(this)" />
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Uploaded Files</h3></div>
+        <div id="files-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div class="modal-bg" id="proj-modal">
+  <div class="modal-box">
+    <div class="modal-top">
+      <h2 id="modal-title">Add Project</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form class="modal-form" onsubmit="saveProject(event)">
+      <input type="hidden" id="proj-id" />
+      <div class="form-row">
+        <div class="form-group"><label>Title *</label><input type="text" id="f-title" required placeholder="VFX Reel 2027" /></div>
+        <div class="form-group"><label>Subtitle</label><input type="text" id="f-subtitle" placeholder="Visual Effects Reel" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="f-category">
+            <option>VFX</option><option>Film</option><option>Simulation</option>
+            <option>Commercial</option><option>Animation</option><option>TV</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Year</label><input type="number" id="f-year" min="2000" max="2035" /></div>
+      </div>
+      <div class="form-group"><label>Description</label><textarea id="f-desc" rows="3" placeholder="Short description shown on the project card..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Behance ID <span style="color:var(--dim);text-transform:none;font-size:.6rem">(just the number)</span></label>
+          <input type="text" id="f-behance-id" placeholder="218145705" />
+        </div>
+        <div class="form-group"><label>Behance URL</label><input type="url" id="f-behance-url" placeholder="https://www.behance.net/gallery/..." /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>External URL <span style="color:var(--dim);text-transform:none;font-size:.6rem">(if no Behance)</span></label><input type="url" id="f-external" placeholder="https://..." /></div>
+        <div class="form-group"><label>IMDb URL</label><input type="url" id="f-imdb" placeholder="https://www.imdb.com/title/..." /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tags <span style="color:var(--dim);text-transform:none;font-size:.6rem">(comma-separated)</span></label>
+          <input type="text" id="f-tags" placeholder="vfx, simulation, reel" />
+        </div>
+        <div class="form-group">
+          <label>Order Index <span style="color:var(--dim);text-transform:none;font-size:.6rem">(lower = shown first)</span></label>
+          <input type="number" id="f-order" value="0" />
+        </div>
+      </div>
+      <div class="form-check">
+        <input type="checkbox" id="f-featured" />
+        <label for="f-featured">Featured on home page</label>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary">Save Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let PWD = ''
+let statsData = null
+let projectsData = []
+const BASE = window.location.origin
+
+function login() {
+  const p = document.getElementById('pwd').value
+  fetch(`${BASE}/api/admin/stats`, { headers: { 'x-admin-password': p } })
+    .then(r => {
+      if (r.ok) {
+        PWD = p
+        document.getElementById('login').style.display = 'none'
+        document.getElementById('dash').style.display = 'block'
+        loadAll()
+        setInterval(loadStats, 30000)
+      } else {
+        document.getElementById('login-err').style.display = 'block'
+      }
+    })
+    .catch(() => {
+      document.getElementById('login-err').textContent = 'Cannot reach backend. Is it running on port 3001?'
+      document.getElementById('login-err').style.display = 'block'
+    })
+}
+
+function h() { return { 'x-admin-password': PWD, 'Content-Type': 'application/json' } }
+
+async function loadAll() { await Promise.all([loadStats(), loadProjects(), loadFiles()]) }
+
+async function loadStats() {
+  try {
+    const r = await fetch(`${BASE}/api/admin/stats`, { headers: h() })
+    statsData = await r.json()
+    renderStats()
+  } catch(e) { console.error(e) }
+}
+
+async function loadProjects() {
+  try {
+    const r = await fetch(`${BASE}/api/admin/projects`, { headers: h() })
+    projectsData = await r.json()
+    renderProjects()
+  } catch(e) { console.error(e) }
+}
+
+async function loadFiles() {
+  try {
+    const r = await fetch(`${BASE}/api/admin/files`, { headers: h() })
+    renderFiles(await r.json())
+  } catch(e) { console.error(e) }
+}
+
+function renderStats() {
+  const d = statsData
+  document.getElementById('last-upd').textContent = 'Updated ' + new Date().toLocaleTimeString()
+  document.getElementById('s-total').textContent = d.pageViews.total.toLocaleString()
+  document.getElementById('s-today').textContent = d.pageViews.today.toLocaleString()
+  document.getElementById('s-week').textContent = d.pageViews.week.toLocaleString()
+  document.getElementById('s-vplays').textContent = d.totalVideoPlays.toLocaleString()
+  document.getElementById('s-msgs').textContent = d.unreadMessages
+
+  renderBarChart('chart-pv', d.dailyViews, 'views', 'rgba(232,118,64,0.35)', 'rgba(232,118,64,0.8)')
+  renderBarChart('chart-vp', d.dailyVideoPlays, 'plays', 'rgba(192,50,88,0.35)', 'rgba(192,50,88,0.8)')
+
+  const tp = document.getElementById('top-pages')
+  tp.innerHTML = d.topPages.length
+    ? d.topPages.map(p => `<tr><td><code style="font-size:.75rem;color:#aaa">${p.label||'/'}</code></td><td style="text-align:right;color:var(--orange);font-weight:600">${p.views}</td></tr>`).join('')
+    : `<tr><td colspan="2" class="empty">No data yet</td></tr>`
+
+  const tvb = document.getElementById('top-videos-bars')
+  if (d.videoBreakdown.length) {
+    const max = d.videoBreakdown[0].total_plays
+    tvb.innerHTML = d.videoBreakdown.slice(0,8).map(v => `
+      <div class="h-bar-row">
+        <span class="h-bar-label" title="${v.label}">${v.label}</span>
+        <div class="h-bar-track"><div class="h-bar-fill" style="width:${max?Math.round(v.total_plays/max*100):0}%"></div></div>
+        <span class="h-bar-count">${v.total_plays}</span>
+      </div>`).join('')
+  } else { tvb.innerHTML = '<p class="empty">No video plays yet</p>' }
+
+  renderVideoTab(d)
+
+  const vt = document.getElementById('visitors-table')
+  vt.innerHTML = d.recentVisitors.length
+    ? d.recentVisitors.map(v => `<tr>
+        <td><code style="font-size:.72rem;color:#aaa">${v.label||'/'}</code></td>
+        <td style="font-family:monospace;font-size:.7rem">${v.ip||'—'}</td>
+        <td style="font-size:.7rem;color:var(--dim);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.referrer||'direct'}</td>
+        <td>${parseUA(v.ua)}</td>
+        <td style="white-space:nowrap;font-size:.72rem">${fmtDate(v.created_at)}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="5" class="empty">No visitors yet</td></tr>`
+
+  renderMessages(d.messages)
+}
+
+function renderVideoTab(d) {
+  document.getElementById('video-total-label').textContent = `${d.totalVideoPlays.toLocaleString()} total plays across all projects`
+
+  const playMap = {}
+  d.videoBreakdown.forEach(v => { playMap[v.label] = v })
+
+  const rows = [...projectsData].map(p => ({ project:p, stats: playMap[p.title] || { total_plays:0, unique_viewers:0, plays_week:0, plays_month:0, last_played:null } }))
+  rows.sort((a,b) => b.stats.total_plays - a.stats.total_plays)
+
+  document.getElementById('video-breakdown').innerHTML = rows.length
+    ? rows.map(({project:p, stats:s}) => `
+        <tr>
+          <td>
+            <strong style="color:var(--text);font-size:.82rem">${p.title}</strong>
+            <div style="font-size:.7rem;color:var(--dim)">${p.subtitle||''}</div>
+          </td>
+          <td><span class="badge ${catBadge(p.category)}">${p.category}</span></td>
+          <td style="color:var(--dim)">${p.year}</td>
+          <td class="plays">${s.total_plays||0}</td>
+          <td style="text-align:right;color:var(--muted)">${s.unique_viewers||0}</td>
+          <td style="text-align:right"><span class="${(s.plays_week||0)>0?'trend-up':'trend-flat'}">${s.plays_week||0}</span></td>
+          <td style="text-align:right;color:var(--muted)">${s.plays_month||0}</td>
+          <td style="color:var(--dim);font-size:.72rem">${s.last_played?fmtDate(s.last_played):'—'}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="8" class="empty">No projects yet</td></tr>`
+
+  renderBarChart('chart-vp2', d.dailyVideoPlays, 'plays', 'rgba(192,50,88,0.35)', 'rgba(192,50,88,0.8)')
+
+  document.getElementById('recent-plays').innerHTML = d.recentVideoPlays.length
+    ? d.recentVideoPlays.map(v => `<tr>
+        <td style="font-size:.82rem">${v.label}</td>
+        <td style="font-family:monospace;font-size:.7rem">${v.ip||'—'}</td>
+        <td>${parseUA(v.ua)}</td>
+        <td style="white-space:nowrap;font-size:.72rem">${fmtDate(v.created_at)}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="4" class="empty">No video plays yet</td></tr>`
+}
+
+function renderProjects() {
+  document.getElementById('proj-count').textContent = projectsData.length
+  const playMap = {}
+  if (statsData) statsData.videoBreakdown.forEach(v => { playMap[v.label] = v.total_plays })
+
+  document.getElementById('projects-table').innerHTML = projectsData.map(p => `
+    <tr>
+      <td style="color:var(--dim)">${p.order_index}</td>
+      <td>
+        <strong style="color:var(--text)">${p.title}</strong>
+        <div style="font-size:.7rem;color:var(--dim)">${p.subtitle||''}</div>
+      </td>
+      <td><span class="badge ${catBadge(p.category)}">${p.category}</span></td>
+      <td style="color:var(--dim)">${p.year}</td>
+      <td style="font-family:monospace;font-size:.7rem;color:var(--muted)">${p.behance_id||'—'}</td>
+      <td>${p.featured?'<span class="badge badge-feat">Yes</span>':'<span style="color:var(--dim)">—</span>'}</td>
+      <td style="text-align:right;color:var(--orange);font-weight:600">${playMap[p.title]||0}</td>
+      <td>
+        <div class="proj-actions">
+          ${p.behance_url||p.behance_id?`<a href="${p.behance_url||'https://www.behance.net/gallery/'+p.behance_id}" target="_blank" class="btn-sm">↗</a>`:''}
+          <button class="btn-sm" onclick="editProject(${p.id})">Edit</button>
+          <button class="btn-danger" onclick="deleteProject(${p.id},'${escQ(p.title)}')">✕</button>
+        </div>
+      </td>
+    </tr>`).join('') || `<tr><td colspan="8" class="empty">No projects</td></tr>`
+}
+
+function renderMessages(msgs) {
+  const ml = document.getElementById('messages-list')
+  if (!msgs.length) { ml.innerHTML = '<div class="empty" style="padding:4rem">No messages yet</div>'; return }
+  ml.innerHTML = msgs.map(m => `
+    <div class="msg-card ${m.read?'':'unread'}" id="msg-${m.id}">
+      <div class="msg-head">
+        <div>
+          <div class="msg-from">${esc(m.name)} <span class="badge ${m.read?'badge-read':'badge-unread'}">${m.read?'read':'new'}</span></div>
+          <div class="msg-email"><a href="mailto:${m.email}" style="color:inherit">${m.email}</a></div>
+        </div>
+        <div class="msg-date">${fmtDate(m.created_at)}</div>
+      </div>
+      <div class="msg-body">${esc(m.message).replace(/\n/g,'<br>')}</div>
+      <div class="msg-foot">
+        ${m.company?`<span class="msg-detail">🏢 ${esc(m.company)}</span>`:''}
+        ${m.service?`<span class="msg-detail">🎬 ${m.service}</span>`:''}
+        ${m.budget?`<span class="msg-detail">💰 ${m.budget}</span>`:''}
+        ${!m.read?`<button class="btn-sm" onclick="markRead(${m.id})">Mark read</button>`:''}
+        <a href="mailto:${m.email}?subject=Re: Haptic Razs Inquiry" class="btn-sm">Reply →</a>
+      </div>
+    </div>`).join('')
+}
+
+function renderFiles(files) {
+  const fl = document.getElementById('files-list')
+  if (!files.length) { fl.innerHTML = '<div class="empty">No files uploaded yet</div>'; return }
+  fl.innerHTML = files.map(f => `
+    <div class="file-item">
+      <span class="file-name" title="${f.name}">${f.name}</span>
+      <span class="file-size">${fmtSize(f.size)}</span>
+      <span class="file-date">${fmtDate(f.modified)}</span>
+      <div class="file-actions">
+        <a href="http://localhost:5173${f.url}" target="_blank" class="btn-sm">View</a>
+        <a href="http://localhost:5173${f.url}" download class="btn-sm">↓</a>
+        <button class="btn-danger" onclick="deleteFile('${escQ(f.name)}')">✕</button>
+      </div>
+    </div>`).join('')
+}
+
+// Upload
+async function uploadFile(input) {
+  const file = input.files[0]; if (!file) return
+  const msg = document.getElementById('upload-msg')
+  msg.className = 'upload-msg'; msg.style.display = 'block'; msg.textContent = `Uploading ${file.name}...`
+  const fd = new FormData(); fd.append('file', file)
+  try {
+    const r = await fetch(`${BASE}/api/admin/upload`, { method:'POST', headers:{'x-admin-password':PWD}, body:fd })
+    const data = await r.json()
+    if (data.ok) {
+      msg.className = 'upload-msg ok'
+      msg.textContent = `✓ Uploaded — site URL: /uploads/${data.filename}  (${fmtSize(data.size)})`
+      loadFiles()
+    } else {
+      msg.className = 'upload-msg err'
+      msg.textContent = '✗ ' + (data.error || 'Upload failed')
+    }
+  } catch { msg.className = 'upload-msg err'; msg.textContent = '✗ Upload error' }
+  input.value = ''
+}
+
+async function deleteFile(name) {
+  if (!confirm(`Delete "${name}"?`)) return
+  await fetch(`${BASE}/api/admin/files/${encodeURIComponent(name)}`, { method:'DELETE', headers:h() })
+  loadFiles()
+}
+
+// Drag & drop
+const uz = document.getElementById('upload-zone')
+uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag') })
+uz.addEventListener('dragleave', () => uz.classList.remove('drag'))
+uz.addEventListener('drop', e => {
+  e.preventDefault(); uz.classList.remove('drag')
+  const fi = document.getElementById('file-input'); fi.files = e.dataTransfer.files; uploadFile(fi)
+})
+
+// Project modal
+function openModal(project) {
+  document.getElementById('modal-title').textContent = project ? 'Edit Project' : 'Add Project'
+  document.getElementById('proj-id').value = project ? project.id : ''
+  const tags = project ? (Array.isArray(project.tags) ? project.tags.join(', ') : project.tags || '') : ''
+  document.getElementById('f-title').value = project?.title || ''
+  document.getElementById('f-subtitle').value = project?.subtitle || ''
+  document.getElementById('f-category').value = project?.category || 'VFX'
+  document.getElementById('f-year').value = project?.year || new Date().getFullYear()
+  document.getElementById('f-desc').value = project?.description || ''
+  document.getElementById('f-behance-id').value = project?.behance_id || ''
+  document.getElementById('f-behance-url').value = project?.behance_url || ''
+  document.getElementById('f-external').value = project?.external_url || ''
+  document.getElementById('f-imdb').value = project?.imdb_url || ''
+  document.getElementById('f-tags').value = tags
+  document.getElementById('f-order').value = project?.order_index ?? 0
+  document.getElementById('f-featured').checked = !!project?.featured
+  document.getElementById('proj-modal').classList.add('open')
+}
+function editProject(id) { openModal(projectsData.find(p => p.id === id)) }
+function closeModal() { document.getElementById('proj-modal').classList.remove('open') }
+document.getElementById('proj-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal() })
+
+async function saveProject(e) {
+  e.preventDefault()
+  const id = document.getElementById('proj-id').value
+  const body = {
+    title: document.getElementById('f-title').value,
+    subtitle: document.getElementById('f-subtitle').value,
+    category: document.getElementById('f-category').value,
+    year: parseInt(document.getElementById('f-year').value) || new Date().getFullYear(),
+    description: document.getElementById('f-desc').value,
+    behance_id: document.getElementById('f-behance-id').value.trim(),
+    behance_url: document.getElementById('f-behance-url').value.trim(),
+    external_url: document.getElementById('f-external').value.trim(),
+    imdb_url: document.getElementById('f-imdb').value.trim(),
+    tags: document.getElementById('f-tags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    order_index: parseInt(document.getElementById('f-order').value) || 0,
+    featured: document.getElementById('f-featured').checked,
+  }
+  const url = id ? `${BASE}/api/admin/projects/${id}` : `${BASE}/api/admin/projects`
+  await fetch(url, { method: id ? 'PUT' : 'POST', headers: h(), body: JSON.stringify(body) })
+  closeModal()
+  await loadProjects()
+  if (statsData) renderVideoTab(statsData)
+}
+
+async function deleteProject(id, title) {
+  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return
+  await fetch(`${BASE}/api/admin/projects/${id}`, { method:'DELETE', headers:h() })
+  await loadProjects()
+}
+
+async function markRead(id) {
+  await fetch(`${BASE}/api/admin/messages/${id}/read`, { method:'POST', headers:h() })
+  loadStats()
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById(`tab-${name}`).classList.add('active')
+  btn.classList.add('active')
+  if (name === 'projects') loadProjects()
+  if (name === 'files') loadFiles()
+  if (name === 'videos' && statsData) renderVideoTab(statsData)
+}
+
+function renderBarChart(id, data, key, colorBase, colorHover) {
+  const el = document.getElementById(id); if (!el) return
+  if (!data || !data.length) { el.innerHTML = '<p style="color:var(--dim);font-size:.75rem;align-self:center;margin:auto">No data yet</p>'; return }
+  const max = Math.max(...data.map(x => x[key]), 1)
+  el.innerHTML = data.map(row => {
+    const pct = Math.max(3, (row[key]/max)*100)
+    const label = row.day ? row.day.slice(5) : ''
+    return `<div class="bar" style="height:${pct}%;background:${colorBase}" data-tip="${label}: ${row[key]}" onmouseenter="this.style.background='${colorHover}'" onmouseleave="this.style.background='${colorBase}'"></div>`
+  }).join('')
+}
+
+function parseUA(ua='') {
+  if (!ua) return '—'
+  if (/iPhone/.test(ua)) return '📱 iPhone'
+  if (/iPad/.test(ua)) return '📱 iPad'
+  if (/Android/.test(ua)) return '📱 Android'
+  if (/Mac/.test(ua)) return '🖥 macOS'
+  if (/Windows/.test(ua)) return '🖥 Windows'
+  if (/Linux/.test(ua)) return '🐧 Linux'
+  return ua.slice(0,28)
+}
+function fmtDate(d) {
+  if (!d) return '—'
+  try {
+    const dt = new Date(String(d).replace(' ','T') + (String(d).includes('Z') ? '' : 'Z'))
+    return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
+  } catch { return String(d) }
+}
+function fmtSize(b) {
+  if (b < 1024) return b + ' B'
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB'
+  return (b/1048576).toFixed(1) + ' MB'
+}
+function catBadge(cat) {
+  return { VFX:'badge-vfx', Film:'badge-film', Simulation:'badge-sim', Commercial:'badge-com', Animation:'badge-vfx', TV:'badge-film' }[cat] || 'badge-sim'
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function escQ(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'") }
+</script>
+</body>
+</html>

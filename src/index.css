@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -5,21 +7,24 @@
 }
 
 :root {
-  --bg: #080808;
-  --bg-subtle: #0f0f0f;
-  --bg-card: #111111;
-  --border: #1e1e1e;
-  --border-light: #2a2a2a;
-  --text: #efefef;
-  --text-muted: #777777;
-  --text-dim: #444444;
-  --grad-start: #E8956A;
-  --grad-end: #B06080;
-  --accent: #E8956A;
-  --accent-2: #B06080;
-  --font-sans: 'Inter', sans-serif;
+  --bg: #020202;
+  --bg-2: #070707;
+  --bg-card: #0c0c0c;
+  --bg-card-hover: #111111;
+  --border: #181818;
+  --border-light: #242424;
+  --text: #eeeeee;
+  --text-muted: #656565;
+  --text-dim: #2e2e2e;
+  --orange: #e87640;
+  --red: #c03258;
+  --gradient: linear-gradient(135deg, #e87640 0%, #c03258 100%);
+  --gradient-r: linear-gradient(135deg, #c03258 0%, #e87640 100%);
+  --glow-orange: rgba(232, 118, 64, 0.18);
+  --glow-red: rgba(192, 50, 88, 0.12);
+  --font-sans: 'Space Grotesk', 'Inter', sans-serif;
   --font-serif: 'Playfair Display', serif;
-  --gradient: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+  --nav-h: 68px;
 }
 
 html {
@@ -27,7 +32,7 @@ html {
 }
 
 body {
-  background-color: var(--bg);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 16px;
@@ -36,14 +41,15 @@ body {
   overflow-x: hidden;
 }
 
-body::before {
+/* Film grain overlay */
+body::after {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.028;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 9998;
 }
 
 a {
@@ -51,27 +57,24 @@ a {
   text-decoration: none;
 }
 
-img, video {
-  max-width: 100%;
+img, video, iframe {
   display: block;
 }
 
+img {
+  max-width: 100%;
+}
+
 ::selection {
-  background: var(--grad-start);
-  color: var(--bg);
+  background: var(--orange);
+  color: #000;
 }
 
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border-light);
-  border-radius: 2px;
-}
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
 
+/* ── Utilities ── */
 .gradient-text {
   background: var(--gradient);
   -webkit-background-clip: text;
@@ -80,8 +83,8 @@ img, video {
 }
 
 .section-eyebrow {
-  font-size: 0.7rem;
-  letter-spacing: 0.25em;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   background: var(--gradient);
   -webkit-background-clip: text;
@@ -89,20 +92,22 @@ img, video {
   background-clip: text;
   margin-bottom: 1rem;
   display: inline-block;
+  font-weight: 500;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
 }
 
 .section-title {
   font-family: var(--font-serif);
-  font-size: 1.8rem;
-  font-weight: 400;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .section-line {
@@ -111,16 +116,20 @@ img, video {
   background: linear-gradient(to right, var(--border-light), transparent);
 }
 
+/* ── Buttons ── */
 .btn {
-  display: inline-block;
-  padding: 0.85rem 2.25rem;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 2rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   border-radius: 2px;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   cursor: pointer;
+  font-family: var(--font-sans);
   position: relative;
   overflow: hidden;
 }
@@ -128,11 +137,24 @@ img, video {
 .btn--primary {
   background: var(--gradient);
   color: #fff;
+  border: none;
+}
+
+.btn--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.25s;
+}
+
+.btn--primary:hover::after {
+  background: rgba(255,255,255,0.08);
 }
 
 .btn--primary:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px var(--glow-orange);
 }
 
 .btn--ghost {
@@ -142,18 +164,33 @@ img, video {
 }
 
 .btn--ghost:hover {
-  border-color: var(--grad-start);
-  color: var(--grad-start);
-  transform: translateY(-1px);
+  border-color: var(--orange);
+  color: var(--orange);
+  transform: translateY(-2px);
 }
 
+.btn--outline {
+  border: 1px solid var(--orange);
+  color: var(--orange);
+  background: transparent;
+}
+
+.btn--outline:hover {
+  background: var(--orange);
+  color: #000;
+  transform: translateY(-2px);
+}
+
+/* ── Page hero (inner pages) ── */
 .page-hero {
-  margin-bottom: 5rem;
+  padding: calc(var(--nav-h) + 5rem) 3rem 5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .page-hero__eyebrow {
-  font-size: 0.7rem;
-  letter-spacing: 0.25em;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   background: var(--gradient);
   -webkit-background-clip: text;
@@ -161,11 +198,26 @@ img, video {
   background-clip: text;
   margin-bottom: 1rem;
   display: inline-block;
+  font-weight: 500;
 }
 
 .page-hero__title {
   font-family: var(--font-serif);
-  font-size: clamp(3rem, 7vw, 6rem);
-  font-weight: 700;
-  line-height: 1.05;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* ── Fade-in animation ── */
+.fade-in {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
