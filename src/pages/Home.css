@@ -55,9 +55,9 @@
 }
 
 .hero__title {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: clamp(3rem, 7vw, 6.5rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 0.95;
   letter-spacing: -0.03em;
   color: var(--text);
@@ -65,10 +65,11 @@
 }
 
 .hero__sub {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.09em;
   margin-bottom: 2rem;
+  font-weight: 300;
 }
 
 .hero__actions {
@@ -437,7 +438,7 @@
 .cta-section {
   border-top: 1px solid var(--border);
   padding: 9rem 3rem;
-  text-align: center;
+  text-align: left;
   position: relative;
   overflow: hidden;
 }
@@ -455,18 +456,18 @@
 
 .cta-inner {
   max-width: 780px;
-  margin: 0 auto;
+  margin: 0;
   position: relative;
   z-index: 1;
 }
 
 .cta-title {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: clamp(2.5rem, 6vw, 5rem);
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.08;
   margin: 0.75rem 0 1.5rem;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
 .cta-sub {
@@ -479,7 +480,7 @@
 .cta-actions {
   display: flex;
   gap: 1rem;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 

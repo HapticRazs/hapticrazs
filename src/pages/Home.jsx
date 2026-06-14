@@ -13,7 +13,7 @@ const projects = [
   },
   {
     id: 'resurgence',
-    title: 'Resurgence — Breakdown',
+    title: 'Resurgence | Breakdown',
     subtitle: 'Short Film VFX',
     youtubeId: 'qJoO3b8RbuU',
     youtubeUrl: 'https://youtu.be/qJoO3b8RbuU',
@@ -31,7 +31,7 @@ const projects = [
   },
   {
     id: 'gatorade',
-    title: 'Gatorade — Become Greatness',
+    title: 'Gatorade | Become Greatness',
     subtitle: 'Commercial',
     youtubeId: 'ntWgA5TaGOg',
     youtubeUrl: 'https://youtu.be/ntWgA5TaGOg',
@@ -50,7 +50,7 @@ const projects = [
   {
     id: 'awakening',
     title: 'Awakening',
-    subtitle: 'Senior Capstone — VFX',
+    subtitle: 'Senior Capstone | VFX',
     youtubeId: 'KkFFgawtzpQ',
     youtubeUrl: 'https://youtu.be/KkFFgawtzpQ',
     desc: 'Houdini particles & Nuke compositing — senior capstone project.',
@@ -165,7 +165,7 @@ export default function Home() {
         <div className={`hero__text${heroIn ? ' hero__text--in' : ''}`}>
           <p className="hero__eyebrow">Akshat Gobind · SCAD 2026</p>
           <h1 className="hero__title">VFX Artist &amp; Filmmaker</h1>
-          <p className="hero__sub">VFX Supervisor · Compositor · Director · Cinematographer</p>
+          <p className="hero__sub">VFX Supervisor | Compositor | Director | Cinematographer</p>
           <div className="hero__actions">
             <a href="/work" className="btn btn--primary">View All Work</a>
             <a href="/contact" className="btn btn--ghost">Hire Me</a>
@@ -298,12 +298,9 @@ export default function Home() {
         <FadeIn>
           <div className="cta-inner">
             <p className="section-eyebrow">Open to Opportunities</p>
-            <h2 className="cta-title">
-              Let's create something<br />
-              <span className="gradient-text">extraordinary.</span>
-            </h2>
+            <h2 className="cta-title">Work Together</h2>
             <p className="cta-sub">
-              Available for VFX work, film productions, and full-time studio positions.
+              Available for VFX, cinematography, commercial work, and full-time studio positions. Let's make something worth watching.
             </p>
             <div className="cta-actions">
               <a href="/contact" className="btn btn--primary">Hire Me</a>

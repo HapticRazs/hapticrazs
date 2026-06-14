@@ -26,7 +26,7 @@ const ALL_PROJECTS = [
     year: '2026', tags: ['film', 'reel'],
   },
   {
-    id: 20, title: 'ChefATL — Season 1', subtitle: 'Television — Camera B Operator',
+    id: 20, title: 'ChefATL | Season 1', subtitle: 'Television | Camera B Operator',
     youtubeId: null, youtubeUrl: null,
     desc: 'Emmy Award-winning PBS docuseries — Camera B Operator on episodes 6, 7 & 9, shooting on Arri Alexa Mini.',
     year: '2024–2026', tags: ['film', 'tv'],
@@ -34,19 +34,19 @@ const ALL_PROJECTS = [
     pbs: 'https://www.pbs.org/show/chefatl/',
   },
   {
-    id: 3, title: 'Resurgence 2026 | First Fight', subtitle: 'Short Film — VFX & Production',
+    id: 3, title: 'Resurgence 2026 | First Fight', subtitle: 'Short Film | VFX & Production',
     youtubeId: 'hlIU8JVD6_U', youtubeUrl: 'https://youtu.be/hlIU8JVD6_U',
     desc: 'Live-action sci-fi action sequence — produced, VFX supervised, and delivered with ~80 VFX shots.',
     year: '2025–2026', tags: ['vfx', 'film'],
   },
   {
-    id: 4, title: 'Resurgence — Breakdown', subtitle: 'Short Film VFX Breakdown',
+    id: 4, title: 'Resurgence | Breakdown', subtitle: 'Short Film VFX Breakdown',
     youtubeId: 'qJoO3b8RbuU', youtubeUrl: 'https://youtu.be/qJoO3b8RbuU',
     desc: 'Shot-by-shot VFX breakdown — actor scans, KeenTools tracking, Nuke compositing, and colorist handoff.',
     year: '2025–2026', tags: ['vfx', 'breakdown'],
   },
   {
-    id: 5, title: 'Gatorade — Become Greatness', subtitle: 'Commercial Concept',
+    id: 5, title: 'Gatorade | Become Greatness', subtitle: 'Commercial Concept',
     youtubeId: 'ntWgA5TaGOg', youtubeUrl: 'https://youtu.be/ntWgA5TaGOg',
     desc: 'FIFA x Gatorade commercial concept directed in an LED volume — performance, lighting, and post production.',
     year: '2024–2025', tags: ['film', 'commercial'],
@@ -58,7 +58,7 @@ const ALL_PROJECTS = [
     year: '2024–2025', tags: ['vfx', 'simulation'],
   },
   {
-    id: 7, title: 'Awakening', subtitle: 'Senior Capstone — VFX',
+    id: 7, title: 'Awakening', subtitle: 'Senior Capstone | VFX',
     youtubeId: 'KkFFgawtzpQ', youtubeUrl: 'https://youtu.be/KkFFgawtzpQ',
     desc: 'Houdini particles & Nuke compositing — senior capstone VFX project.',
     year: '2024', tags: ['vfx'],
