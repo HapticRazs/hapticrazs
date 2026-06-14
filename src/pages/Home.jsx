@@ -6,8 +6,8 @@ const projects = [
     id: 'film-reel',
     title: 'Film Reel 2026',
     subtitle: 'Cinematography & Directing',
-    behanceId: '240308603',
-    behanceUrl: 'https://www.behance.net/gallery/240308603/FilmReel2026_AkshatGobind',
+    youtubeId: 'GClqI5ddfMs',
+    youtubeUrl: 'https://youtu.be/GClqI5ddfMs',
     desc: 'Arri Alexa Mini, RED cameras, multi-camera productions and commercial work.',
     tag: 'Film',
   },
@@ -15,8 +15,8 @@ const projects = [
     id: 'resurgence',
     title: 'Resurgence — Breakdown',
     subtitle: 'Short Film VFX',
-    behanceId: '239924089',
-    behanceUrl: 'https://www.behance.net/gallery/239924089/ResurgenceShortFilm_Breakdown',
+    youtubeId: 'qJoO3b8RbuU',
+    youtubeUrl: 'https://youtu.be/qJoO3b8RbuU',
     desc: 'VFX breakdown of a short sci-fi film — particles, compositing, CGI integration.',
     tag: 'VFX',
   },
@@ -24,8 +24,8 @@ const projects = [
     id: 'bird',
     title: 'Bird Murmuration',
     subtitle: 'Houdini Simulation',
-    behanceId: '217317251',
-    behanceUrl: 'https://www.behance.net/gallery/217317251/Bird-Murmuration',
+    youtubeId: '4SCddF-dn30',
+    youtubeUrl: 'https://youtu.be/4SCddF-dn30',
     desc: 'Large-scale particle simulation and water effects built in Houdini.',
     tag: 'Simulation',
   },
@@ -33,8 +33,8 @@ const projects = [
     id: 'gatorade',
     title: 'Gatorade — Become Greatness',
     subtitle: 'Commercial',
-    behanceId: '239924297',
-    behanceUrl: 'https://www.behance.net/gallery/239924297/Gatorade-Become-Greatness',
+    youtubeId: 'ntWgA5TaGOg',
+    youtubeUrl: 'https://youtu.be/ntWgA5TaGOg',
     desc: 'High-energy commercial concept — shot, directed, and edited.',
     tag: 'Commercial',
   },
@@ -42,8 +42,8 @@ const projects = [
     id: 'dreamers',
     title: "A Dreamer's Journey",
     subtitle: 'Narrative Film',
-    behanceId: '239925951',
-    behanceUrl: 'https://www.behance.net/gallery/239925951/A-Dreamers-Journey',
+    youtubeId: '5Aad-lyNx8Y',
+    youtubeUrl: 'https://youtu.be/5Aad-lyNx8Y',
     desc: 'A visual narrative short film exploring movement and identity.',
     tag: 'Film',
   },
@@ -51,24 +51,11 @@ const projects = [
     id: 'awakening',
     title: 'Awakening',
     subtitle: 'Senior Capstone — VFX',
-    behanceId: '217317013',
-    behanceUrl: 'https://www.behance.net/gallery/217317013/Awakening',
+    youtubeId: 'KkFFgawtzpQ',
+    youtubeUrl: 'https://youtu.be/KkFFgawtzpQ',
     desc: 'Houdini particles & Nuke compositing — senior capstone project.',
     tag: 'VFX',
   },
-]
-
-const stats = [
-  { value: '4+', label: 'Years Experience' },
-  { value: '10+', label: 'Projects' },
-  { value: 'BFA', label: 'VFX · SCAD' },
-  { value: '∞', label: 'Frames Rendered' },
-]
-
-const tools = [
-  'Houdini', 'Nuke', 'Maya', 'Blender', 'After Effects',
-  'Substance Painter', 'Arri Alexa Mini', 'RED Cameras',
-  'Blackmagic 6K', 'Python', 'Particle Simulation', 'Compositing',
 ]
 
 function FadeIn({ children, className = '', delay = 0 }) {
@@ -90,6 +77,9 @@ function FadeIn({ children, className = '', delay = 0 }) {
 }
 
 function ReelCard({ project, delay = 0 }) {
+  const [active, setActive] = useState(false)
+  const thumb = `https://i.ytimg.com/vi/${project.youtubeId}/mqdefault.jpg`
+
   const trackPlay = () => {
     fetch('/api/track', {
       method: 'POST',
@@ -100,42 +90,57 @@ function ReelCard({ project, delay = 0 }) {
 
   return (
     <FadeIn delay={delay} className="reel-card-wrap">
-      <a href={project.behanceUrl} target="_blank" rel="noreferrer" className="reel-card" onClick={trackPlay}>
+      <div className="reel-card">
         <div className="reel-card__embed">
-          <iframe
-            src={`https://www.behance.net/embed/project/${project.behanceId}?ilo0=1`}
-            title={project.title}
-            allowFullScreen
-            allow="fullscreen; picture-in-picture"
-            referrerPolicy="strict-origin-when-cross-origin"
-            loading="lazy"
-          />
-          <div className="reel-card__hover-overlay">
-            <div className="reel-card__play-btn">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                <polygon points="5,3 19,12 5,21" />
-              </svg>
+          {active ? (
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${project.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+              title={project.title}
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            />
+          ) : (
+            <div
+              className="reel-card__thumb"
+              style={{ backgroundImage: `url(${thumb})` }}
+              onClick={() => { setActive(true); trackPlay() }}
+            >
+              <div className="reel-card__hover-overlay">
+                <div className="reel-card__play-btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <polygon points="5,3 19,12 5,21" />
+                  </svg>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         <div className="reel-card__info">
           <span className="reel-card__tag">{project.tag}</span>
           <h3 className="reel-card__title">{project.title}</h3>
           <p className="reel-card__desc">{project.desc}</p>
-          <span className="reel-card__cta">View on Behance →</span>
+          <a href={project.youtubeUrl} target="_blank" rel="noreferrer" className="reel-card__cta">
+            Watch on YouTube →
+          </a>
         </div>
         <div className="reel-card__border-glow" />
-      </a>
+      </div>
     </FadeIn>
   )
 }
 
+const REELS = {
+  vfx:  { id: 'juik4TNmWLg', label: 'VFX Reel 2026',  url: 'https://youtu.be/juik4TNmWLg' },
+  film: { id: 'GClqI5ddfMs', label: 'Film Reel 2026', url: 'https://youtu.be/GClqI5ddfMs' },
+}
+
 export default function Home() {
   const [heroIn, setHeroIn] = useState(false)
+  const [reelTrack, setReelTrack] = useState('vfx')
+  const [featuredActive, setFeaturedActive] = useState(false)
 
   useEffect(() => {
-    const t = setTimeout(() => setHeroIn(true), 400)
-    // Track home page visit
+    const t = setTimeout(() => setHeroIn(true), 200)
     fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -155,73 +160,43 @@ export default function Home() {
   return (
     <main className="home">
 
-      {/* ── Fullscreen Demo Reel Hero ── */}
+      {/* ── Hero ── */}
       <section className="hero">
-        <div className="hero__reel-wrap">
-          <iframe
-            src="https://www.behance.net/embed/project/218145705?ilo0=1"
-            title="VFX Demo Reel 2026 — Haptic Razs"
-            allowFullScreen
-            allow="fullscreen; picture-in-picture"
-            referrerPolicy="strict-origin-when-cross-origin"
-            className="hero__iframe"
-          />
-          <div className="hero__vignette" />
-        </div>
-
-        <div className={`hero__content${heroIn ? ' hero__content--in' : ''}`}>
-          <div className="hero__left">
-            <p className="hero__eyebrow">VFX Demo Reel · 2026</p>
-            <h1 className="hero__name">
-              Haptic<br />
-              <em>Razs</em>
-            </h1>
-          </div>
-          <div className="hero__right">
-            <div className="hero__reel-label">
-              <p className="hero__reel-title">VFX Demo<br/>Reel 2026</p>
-              <p className="hero__reel-sub">Particle Simulation · Compositing · CGI</p>
-            </div>
-            <div className="hero__meta">
-              <p className="hero__role">VFX Artist &amp; Filmmaker</p>
-              <p className="hero__byline">Akshat Gobind · SCAD · Class of 2026</p>
-            </div>
-            <div className="hero__actions">
-              <a href="/work" className="btn btn--primary">View All Work</a>
-              <a href="/contact" className="btn btn--ghost">Hire Me</a>
-            </div>
+        <div className={`hero__text${heroIn ? ' hero__text--in' : ''}`}>
+          <p className="hero__eyebrow">Akshat Gobind · SCAD 2026</p>
+          <h1 className="hero__title">VFX Artist &amp; Filmmaker</h1>
+          <p className="hero__sub">VFX Supervisor · Compositor · Director · Cinematographer</p>
+          <div className="hero__actions">
+            <a href="/work" className="btn btn--primary">View All Work</a>
+            <a href="/contact" className="btn btn--ghost">Hire Me</a>
           </div>
         </div>
 
-        <div className="hero__scroll-hint">
-          <span className="hero__scroll-line" />
-          <p className="hero__scroll-label">Scroll</p>
-        </div>
-      </section>
-
-      {/* ── Marquee Strip ── */}
-      <div className="marquee-strip">
-        <div className="marquee-track">
-          {[...tools, ...tools].map((t, i) => (
-            <span key={i} className="marquee-item">
-              <span className="marquee-dot" />
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Stats ── */}
-      <section className="stats-section">
-        <div className="stats-grid">
-          {stats.map((s, i) => (
-            <FadeIn key={s.label} delay={i * 90}>
-              <div className="stat">
-                <span className="stat__value gradient-text">{s.value}</span>
-                <span className="stat__label">{s.label}</span>
-              </div>
-            </FadeIn>
-          ))}
+        <div className={`hero__player${heroIn ? ' hero__player--in' : ''}`}>
+          <div className="hero__player-header">
+            <div className="hero__reel-toggle">
+              {Object.entries(REELS).map(([key, reel]) => (
+                <button
+                  key={key}
+                  className={`hero__reel-btn${reelTrack === key ? ' hero__reel-btn--active' : ''}`}
+                  onClick={() => setReelTrack(key)}
+                >
+                  {reel.label}
+                </button>
+              ))}
+            </div>
+            <a href={REELS[reelTrack].url} target="_blank" rel="noreferrer" className="hero__yt-link">
+              YouTube ↗
+            </a>
+          </div>
+          <div className="hero__player-frame" key={reelTrack}>
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${REELS[reelTrack].id}?rel=0&modestbranding=1`}
+              title={`${REELS[reelTrack].label} — Haptic Razs`}
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            />
+          </div>
         </div>
       </section>
 
@@ -235,35 +210,36 @@ export default function Home() {
                 <h2 className="section-title">Film Reel 2026</h2>
               </div>
               <div className="section-line" />
-              <a
-                href="https://www.behance.net/gallery/240308603/FilmReel2026_AkshatGobind"
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn--ghost"
-              >
-                Behance ↗
+              <a href="https://youtu.be/GClqI5ddfMs" target="_blank" rel="noreferrer" className="btn btn--ghost">
+                YouTube ↗
               </a>
             </div>
           </FadeIn>
 
           <FadeIn>
-            <a
-              href="https://www.behance.net/gallery/240308603/FilmReel2026_AkshatGobind"
-              target="_blank"
-              rel="noreferrer"
-              className="featured-reel"
-              onClick={trackFeaturedPlay}
-            >
+            <div className="featured-reel">
               <div className="featured-reel__embed">
-                <iframe
-                  src="https://www.behance.net/embed/project/240308603?ilo0=1"
-                  title="Film Reel 2026 — Haptic Razs"
-                  allowFullScreen
-                  allow="fullscreen; picture-in-picture"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  loading="lazy"
-                />
-                <div className="featured-reel__overlay" />
+                {featuredActive ? (
+                  <iframe
+                    src="https://www.youtube-nocookie.com/embed/GClqI5ddfMs?autoplay=1&rel=0&modestbranding=1"
+                    title="Film Reel 2026 — Haptic Razs"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  />
+                ) : (
+                  <div
+                    className="featured-reel__thumb"
+                    style={{ backgroundImage: 'url(https://i.ytimg.com/vi/GClqI5ddfMs/maxresdefault.jpg)' }}
+                    onClick={() => { setFeaturedActive(true); trackFeaturedPlay() }}
+                  >
+                    <div className="featured-reel__overlay" />
+                    <div className="featured-reel__play">
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
+                        <polygon points="5,3 19,12 5,21" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="featured-reel__meta">
                 <div>
@@ -273,9 +249,11 @@ export default function Home() {
                     narrative shorts, reality TV, and commercial concept shoots.
                   </p>
                 </div>
-                <span className="featured-reel__link">View on Behance →</span>
+                <a href="https://youtu.be/GClqI5ddfMs" target="_blank" rel="noreferrer" className="featured-reel__link">
+                  Watch on YouTube →
+                </a>
               </div>
-            </a>
+            </div>
           </FadeIn>
         </div>
       </section>
@@ -302,8 +280,8 @@ export default function Home() {
           <FadeIn>
             <div className="projects-cta">
               <p>Full portfolio on</p>
-              <a href="https://www.behance.net/akshatgobind1" target="_blank" rel="noreferrer" className="btn btn--ghost">
-                Behance ↗
+              <a href="https://www.youtube.com/@AkshatGobind" target="_blank" rel="noreferrer" className="btn btn--ghost">
+                YouTube ↗
               </a>
               <a href="https://linktr.ee/Akshatgobind" target="_blank" rel="noreferrer" className="btn btn--ghost">
                 Linktree ↗

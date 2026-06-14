@@ -8,6 +8,197 @@
   padding: 0 3rem 8rem;
 }
 
+/* ── Track tabs ── */
+.resume-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.resume-tab {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0.65rem 1.5rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.resume-tab:hover {
+  color: var(--text);
+}
+
+.resume-tab--active {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+}
+
+/* ── Reel player ── */
+.resume-reel {
+  margin-bottom: 3rem;
+  max-width: 900px;
+}
+
+.lite-yt {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--bg-card);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.lite-yt--empty {
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lite-yt__coming-soon {
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.lite-yt__iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.lite-yt__play {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.lite-yt:hover .lite-yt__play {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.lite-yt__play-bg {
+  fill: rgba(0, 0, 0, 0.75);
+  transition: fill 0.2s;
+}
+
+.lite-yt:hover .lite-yt__play-bg {
+  fill: #e87640;
+}
+
+.lite-yt__play-arrow {
+  fill: #fff;
+}
+
+.lite-yt__label {
+  position: absolute;
+  bottom: 1rem;
+  left: 1.25rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* ── Video grid ── */
+.resume-video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 3.5rem;
+  max-width: 900px;
+}
+
+.vid-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.vid-card__thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.vid-card__thumb:hover {
+  border-color: var(--border-light);
+}
+
+.vid-card__play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.vid-card__thumb:hover .vid-card__play {
+  background: rgba(232, 118, 64, 0.55);
+}
+
+.vid-card__iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: block;
+}
+
+.vid-card__title {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+/* ── Summary ── */
+.resume-summary {
+  max-width: 780px;
+  margin-bottom: 3.5rem;
+}
+
+.resume-summary p {
+  font-size: 0.9rem;
+  line-height: 1.85;
+  color: var(--text-muted);
+}
+
 .resume-layout {
   display: grid;
   grid-template-columns: 1fr 280px;
@@ -88,6 +279,21 @@
   font-size: 0.8rem;
   color: var(--text-muted);
   line-height: 1.5;
+}
+
+.timeline-item__bullets {
+  margin-top: 0.65rem;
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  list-style: disc;
+}
+
+.timeline-item__bullets li {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.65;
 }
 
 /* ── Education ── */
@@ -221,6 +427,10 @@
   padding: 0.8rem 1.5rem;
 }
 
+.sidebar-download + .sidebar-download {
+  margin-top: 0.75rem;
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .resume-layout {
@@ -237,6 +447,9 @@
   .sidebar-download {
     grid-column: 1 / -1;
   }
+  .resume-video-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
@@ -245,4 +458,8 @@
   .sidebar-contact { grid-column: auto; }
   .sidebar-download { grid-column: auto; }
   .timeline-item { grid-template-columns: 80px 1fr; gap: 1rem; }
+  .resume-reel { max-width: 100%; }
+  .resume-tabs { margin-bottom: 2rem; }
+  .resume-tab { padding: 0.65rem 1rem; font-size: 0.72rem; }
+  .resume-video-grid { grid-template-columns: 1fr; }
 }

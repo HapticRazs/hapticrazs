@@ -13,7 +13,7 @@ const services = [
 const socials = [
   { label: 'Email', value: 'akshatgobind56@gmail.com', href: 'mailto:akshatgobind56@gmail.com' },
   { label: 'LinkedIn', value: 'akshat-gobind', href: 'https://www.linkedin.com/in/akshat-gobind-796312247' },
-  { label: 'Behance', value: 'akshatgobind1', href: 'https://www.behance.net/akshatgobind1' },
+  { label: 'YouTube', value: '@AkshatGobind', href: 'https://www.youtube.com/@AkshatGobind' },
   { label: 'Linktree', value: 'Akshatgobind', href: 'https://linktr.ee/Akshatgobind' },
 ]
 

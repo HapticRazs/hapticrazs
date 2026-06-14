@@ -2,9 +2,8 @@ import './About.css'
 
 const socials = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/akshat-gobind-796312247' },
-  { label: 'Behance', href: 'https://www.behance.net/akshatgobind1' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@AkshatGobind' },
   { label: 'Linktree', href: 'https://linktr.ee/Akshatgobind' },
-  { label: 'YouTube', href: 'https://www.youtube.com/channel/UCjRLETbIg1n0AlGMU5pUCew' },
   { label: 'Instagram', href: 'https://www.instagram.com/artbyhrazs' },
 ]
 
