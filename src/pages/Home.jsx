@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import './Home.css'
 
 const projects = [
@@ -167,8 +168,8 @@ export default function Home() {
           <h1 className="hero__title">VFX Artist &amp; Filmmaker</h1>
           <p className="hero__sub">VFX Supervisor | Compositor | Director | Cinematographer</p>
           <div className="hero__actions">
-            <a href="/work" className="btn btn--primary">View All Work</a>
-            <a href="/contact" className="btn btn--ghost">Hire Me</a>
+            <Link to="/work" className="btn btn--primary">View All Work</Link>
+            <Link to="/contact" className="btn btn--ghost">Hire Me</Link>
           </div>
         </div>
 
@@ -286,7 +287,7 @@ export default function Home() {
               <a href="https://linktr.ee/Akshatgobind" target="_blank" rel="noreferrer" className="btn btn--ghost">
                 Linktree ↗
               </a>
-              <a href="/work" className="btn btn--outline">All Projects</a>
+              <Link to="/work" className="btn btn--outline">All Projects</Link>
             </div>
           </FadeIn>
         </div>
@@ -303,7 +304,7 @@ export default function Home() {
               Available for VFX, cinematography, commercial work, and full-time studio positions. Let's make something worth watching.
             </p>
             <div className="cta-actions">
-              <a href="/contact" className="btn btn--primary">Hire Me</a>
+              <Link to="/contact" className="btn btn--primary">Hire Me</Link>
               <a href="mailto:akshatgobind56@gmail.com" className="btn btn--ghost">Email Directly ↗</a>
             </div>
           </div>

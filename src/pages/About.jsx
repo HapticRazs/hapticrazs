@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import './About.css'
 
 const socials = [
@@ -93,9 +94,9 @@ export default function About() {
                 Film Resume ↓
               </a>
             </div>
-            <a href="/contact" className="btn btn--primary about-hire-btn">
+            <Link to="/contact" className="btn btn--primary about-hire-btn">
               Hire Me →
-            </a>
+            </Link>
           </aside>
 
         </div>
