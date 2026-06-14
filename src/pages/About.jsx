@@ -8,7 +8,7 @@ const socials = [
 ]
 
 const cards = [
-  { label: 'Status', value: 'BFA Visual Effects — Graduated 2026' },
+  { label: 'Status', value: 'BFA Visual Effects | Graduated 2026' },
   { label: 'School', value: 'Savannah College of Art and Design' },
   { label: 'Specialization', value: 'Particle Simulation & Compositing' },
   { label: 'Camera', value: 'Arri Alexa Mini · RED · Blackmagic 6K' },
@@ -34,24 +34,24 @@ export default function About() {
             <div className="about-photo-wrap">
               <img
                 src="https://static.wixstatic.com/media/dab4be_4dad3156fbcd414f8559c3f425a99edb~mv2.jpg"
-                alt="Akshat Gobind — Haptic Razs"
+                alt="Akshat Gobind | Haptic Razs"
                 className="about-photo"
               />
               <div className="about-photo-glow" />
             </div>
 
             <p className="about-lead">
-              I'm Akshat Gobind — a visual effects artist and filmmaker. I graduated with a
+              I'm Akshat Gobind, a visual effects artist and filmmaker. I graduated with a
               BFA in Visual Effects from the Savannah College of Art and Design (SCAD), Class of 2026.
             </p>
             <p>
               Passionate about health, technology, and filmmaking, I aim to master VFX creation
-              for film and television. I describe myself as resilient and adaptable —
+              for film and television. I describe myself as resilient and adaptable,
               someone who thrives under pressure and stays focused on long-term goals.
             </p>
             <p>
               My approach to work emphasizes continuous learning and growth. I seek to contribute
-              to storytelling projects that push creative boundaries — collaborating with teams
+              to storytelling projects that push creative boundaries, collaborating with teams
               producing impactful narratives across film, commercial, and television.
             </p>
             <p>

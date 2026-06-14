@@ -33,25 +33,20 @@ export default function Contact() {
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
-  const handleSubmit = async e => {
+  const handleSubmit = e => {
     e.preventDefault()
     if (!form.name || !form.email || !form.message) return
-    setStatus('sending')
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      if (res.ok) {
-        setStatus('sent')
-        setForm({ name: '', email: '', company: '', service: '', budget: '', message: '' })
-      } else {
-        setStatus('error')
-      }
-    } catch {
-      setStatus('error')
-    }
+    const serviceLabel = services.find(s => s.id === form.service)?.label || ''
+    const subject = encodeURIComponent(`Portfolio Inquiry — ${form.name}${form.company ? ` (${form.company})` : ''}`)
+    const body = encodeURIComponent(
+      `${form.message}\n\n---\nName: ${form.name}\nEmail: ${form.email}` +
+      (form.company ? `\nCompany: ${form.company}` : '') +
+      (serviceLabel ? `\nService: ${serviceLabel}` : '') +
+      (form.budget ? `\nBudget: ${form.budget}` : '')
+    )
+    window.location.href = `mailto:akshatgobind56@gmail.com?subject=${subject}&body=${body}`
+    setStatus('sent')
+    setForm({ name: '', email: '', company: '', service: '', budget: '', message: '' })
   }
 
   return (
