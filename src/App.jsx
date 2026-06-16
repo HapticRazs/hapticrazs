@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { API_BASE } from './api'
 import Cursor from './components/Cursor'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -12,7 +13,7 @@ import Contact from './pages/Contact'
 function Analytics() {
   const location = useLocation()
   useEffect(() => {
-    fetch('/api/track', {
+    fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

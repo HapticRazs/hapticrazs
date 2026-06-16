@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_BASE } from '../api'
 import './Contact.css'
 
 const services = [
@@ -24,7 +25,7 @@ export default function Contact() {
   const [status, setStatus] = useState(null) // null | 'sending' | 'sent' | 'error'
 
   useEffect(() => {
-    fetch('/api/track', {
+    fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event: 'page_view', label: '/contact' }),

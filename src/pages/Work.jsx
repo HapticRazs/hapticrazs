@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { API_BASE } from '../api'
 import './Work.css'
 
 const BEHANCE_TO_YT = {
@@ -198,7 +199,7 @@ function WorkCard({ project, delay = 0 }) {
   const href = project.youtubeUrl || project.externalUrl || '#'
 
   const trackPlay = () => {
-    fetch('/api/track', {
+    fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event: 'video_play', label: project.title }),
@@ -256,14 +257,14 @@ export default function Work() {
   const [projects, setProjects] = useState(ALL_PROJECTS.map(normalizeProject))
 
   useEffect(() => {
-    fetch('/api/projects')
+    fetch(`${API_BASE}/api/projects`)
       .then(r => r.json())
       .then(data => {
         if (data && data.length > 0) setProjects(data.map(normalizeProject))
       })
       .catch(() => {})
 
-    fetch('/api/track', {
+    fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event: 'page_view', label: '/work' }),

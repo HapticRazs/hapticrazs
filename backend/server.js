@@ -18,13 +18,13 @@ if (existsSync(envPath)) {
     if (k && !k.startsWith('#')) env[k.trim()] = v.join('=').trim()
   })
 }
-const ADMIN_PASSWORD = env.ADMIN_PASSWORD || 'hapticrazs2026'
-const PORT = env.PORT || 3001
-const GMAIL_USER = env.GMAIL_USER || 'akshatgobind56@gmail.com'
-const GMAIL_APP_PASSWORD = env.GMAIL_APP_PASSWORD || ''
+const ADMIN_PASSWORD = env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'hapticrazs2026'
+const PORT = env.PORT || process.env.PORT || 3001
+const GMAIL_USER = env.GMAIL_USER || process.env.GMAIL_USER || 'akshatgobind56@gmail.com'
+const GMAIL_APP_PASSWORD = env.GMAIL_APP_PASSWORD || process.env.GMAIL_APP_PASSWORD || ''
 
-// ── Upload dir (inside frontend public so Vite serves it at /uploads/) ──
-const UPLOADS_DIR = join(__dirname, '..', 'public', 'uploads')
+// ── Upload dir ────────────────────────────────────
+const UPLOADS_DIR = join(__dirname, 'uploads')
 if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true })
 
 // ── Multer ────────────────────────────────────────
@@ -150,8 +150,9 @@ async function sendEmailNotification(msg) {
 
 // ── Express ──────────────────────────────────────
 const app = express()
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:4173'] }))
+app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:4173', 'https://hapticrazs.com', 'https://www.hapticrazs.com'] }))
 app.use(express.json())
+app.use('/uploads', express.static(UPLOADS_DIR))
 app.use(express.static(join(__dirname, 'public')))
 
 const getIp = req => (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim()

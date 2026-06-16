@@ -6,3 +6,4 @@ backend/analytics.db
 backend/.env
 backend/node_modules
 public/uploads/
+backend/uploads/

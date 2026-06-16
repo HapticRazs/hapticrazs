@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { API_BASE } from '../api'
 import './Home.css'
 
 const projects = [
@@ -82,7 +83,7 @@ function ReelCard({ project, delay = 0 }) {
   const thumb = `https://i.ytimg.com/vi/${project.youtubeId}/mqdefault.jpg`
 
   const trackPlay = () => {
-    fetch('/api/track', {
+    fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event: 'video_play', label: project.title }),
@@ -142,7 +143,7 @@ export default function Home() {
 
   useEffect(() => {
     const t = setTimeout(() => setHeroIn(true), 200)
-    fetch('/api/track', {
+    fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event: 'page_view', label: '/' }),
@@ -151,7 +152,7 @@ export default function Home() {
   }, [])
 
   const trackFeaturedPlay = () => {
-    fetch('/api/track', {
+    fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event: 'video_play', label: 'Film Reel 2026 (Featured)' }),
