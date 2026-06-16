@@ -138,11 +138,13 @@ export default function Admin() {
       if (r.ok) {
         authedPwd.current = pwd
         setAuthed(true)
-      } else {
+      } else if (r.status === 401) {
         setLoginErr('Incorrect password')
+      } else {
+        setLoginErr('Backend not reachable — deploy the backend first.')
       }
     } catch {
-      setLoginErr('Cannot reach backend — make sure it is running.')
+      setLoginErr('Backend not reachable — deploy the backend first.')
     }
   }
 
