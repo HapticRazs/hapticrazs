@@ -9,10 +9,12 @@ import Work from './pages/Work'
 import Resume from './pages/Resume'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import Admin from './pages/Admin'
 
 function Analytics() {
   const location = useLocation()
   useEffect(() => {
+    if (location.pathname === '/admin') return
     fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -27,10 +29,9 @@ function Analytics() {
   return null
 }
 
-export default function App() {
+function MainLayout() {
   return (
-    <BrowserRouter>
-      <Analytics />
+    <>
       <Cursor />
       <Navbar />
       <Routes>
@@ -41,6 +42,18 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
       </Routes>
       <Footer />
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Analytics />
+      <Routes>
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/*" element={<MainLayout />} />
+      </Routes>
     </BrowserRouter>
   )
 }
