@@ -18,7 +18,7 @@ if (existsSync(envPath)) {
     if (k && !k.startsWith('#')) env[k.trim()] = v.join('=').trim()
   })
 }
-const ADMIN_PASSWORD = env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'hapticrazs@2023'
+const ADMIN_PASSWORD = env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'Hapticrazs@2023'
 const PORT = env.PORT || process.env.PORT || 3001
 const GMAIL_USER = env.GMAIL_USER || process.env.GMAIL_USER || 'akshatgobind56@gmail.com'
 const GMAIL_APP_PASSWORD = env.GMAIL_APP_PASSWORD || process.env.GMAIL_APP_PASSWORD || ''
