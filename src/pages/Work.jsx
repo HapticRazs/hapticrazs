@@ -31,7 +31,6 @@ const ALL_PROJECTS = [
     youtubeId: null, youtubeUrl: null,
     desc: 'Emmy Award-winning PBS docuseries — Camera B Operator on episodes 6, 7 & 9, shooting on Arri Alexa Mini.',
     year: '2024–2026', tags: ['film', 'tv'],
-    imdb: 'https://www.imdb.com/title/tt33341737/',
     pbs: 'https://www.pbs.org/show/chefatl/',
   },
   {
@@ -196,7 +195,7 @@ function YTThumb({ youtubeId, title }) {
 }
 
 function WorkCard({ project, delay = 0 }) {
-  const href = project.youtubeUrl || project.externalUrl || '#'
+  const href = project.youtubeUrl || project.pbs || project.externalUrl || '#'
 
   const trackPlay = () => {
     fetch(`${API_BASE}/api/track`, {
