@@ -256,13 +256,6 @@ export default function Work() {
   const [projects, setProjects] = useState(ALL_PROJECTS.map(normalizeProject))
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/projects`)
-      .then(r => r.json())
-      .then(data => {
-        if (data && data.length > 0) setProjects(data.map(normalizeProject))
-      })
-      .catch(() => {})
-
     fetch(`${API_BASE}/api/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
