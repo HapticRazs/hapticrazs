@@ -9,7 +9,7 @@ import multer from 'multer'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-// ── Config ──────────────────────────────────────
+// ── Config ───────────────────────────────────────
 let env = {}
 const envPath = join(__dirname, '.env')
 if (existsSync(envPath)) {
