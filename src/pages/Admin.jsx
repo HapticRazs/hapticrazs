@@ -414,22 +414,26 @@ export default function Admin() {
         {/* ── Visitors ── */}
         {activeTab === 'visitors' && (
           <div className="adm-card">
-            <div className="adm-card-head"><h3>Recent Visitors (last 50)</h3></div>
+            <div className="adm-card-head">
+              <h3>Unique Visitors (last 50)</h3>
+              <span style={{ fontSize: '.72rem', color: 'var(--adm-muted)' }}>1 IP = 1 visit per day</span>
+            </div>
             <div className="adm-table-scroll">
               <table className="adm-table">
-                <thead><tr><th>Page</th><th>IP</th><th>Referrer</th><th>Device</th><th>Time</th></tr></thead>
+                <thead><tr><th>IP</th><th>Device</th><th>Referrer</th><th style={{ textAlign: 'right' }}>Views that day</th><th style={{ textAlign: 'right' }}>Days visited</th><th>Last seen</th></tr></thead>
                 <tbody>
                   {stats?.recentVisitors.length
                     ? stats.recentVisitors.map((v, i) => (
                         <tr key={i}>
-                          <td><code style={{ fontSize: '.72rem', color: '#aaa' }}>{v.label || '/'}</code></td>
                           <td style={{ fontFamily: 'monospace', fontSize: '.7rem' }}>{v.ip || '—'}</td>
-                          <td style={{ fontSize: '.7rem', color: 'var(--adm-dim)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.referrer || 'direct'}</td>
                           <td>{parseUA(v.ua)}</td>
-                          <td style={{ whiteSpace: 'nowrap', fontSize: '.72rem' }}>{fmtDate(v.created_at)}</td>
+                          <td style={{ fontSize: '.7rem', color: 'var(--adm-dim)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.referrer || 'direct'}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{v.views_today}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--adm-orange)', fontWeight: 600 }}>{v.total_visits}</td>
+                          <td style={{ whiteSpace: 'nowrap', fontSize: '.72rem' }}>{fmtDate(v.last_seen)}</td>
                         </tr>
                       ))
-                    : <tr><td colSpan="5" className="adm-empty">No visitors yet</td></tr>
+                    : <tr><td colSpan="6" className="adm-empty">No visitors yet</td></tr>
                   }
                 </tbody>
               </table>

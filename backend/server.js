@@ -141,12 +141,23 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       totalVideoPlaysR, videoBreakdownR, dailyVideoPlaysR, recentVideoPlaysR,
       messagesR, unreadR,
     ] = await db.batch([
-      "SELECT COUNT(*) as n FROM events WHERE event='page_view'",
-      "SELECT COUNT(*) as n FROM events WHERE event='page_view' AND date(created_at)=date('now')",
-      "SELECT COUNT(*) as n FROM events WHERE event='page_view' AND created_at>=datetime('now','-7 days')",
+      "SELECT COUNT(*) as n FROM (SELECT DISTINCT ip, date(created_at) FROM events WHERE event='page_view')",
+      "SELECT COUNT(DISTINCT ip) as n FROM events WHERE event='page_view' AND date(created_at)=date('now')",
+      "SELECT COUNT(*) as n FROM (SELECT DISTINCT ip, date(created_at) FROM events WHERE event='page_view' AND created_at>=datetime('now','-7 days'))",
       "SELECT label,COUNT(*) as views FROM events WHERE event='page_view' GROUP BY label ORDER BY views DESC LIMIT 10",
-      "SELECT label,ip,ua,referrer,created_at FROM events WHERE event='page_view' ORDER BY created_at DESC LIMIT 50",
-      "SELECT date(created_at) as day,COUNT(*) as views FROM events WHERE event='page_view' AND created_at>=datetime('now','-30 days') GROUP BY day ORDER BY day",
+      `SELECT d.ip, d.day, d.ua, d.referrer, d.views_today, d.last_seen, t.total_visits
+       FROM (
+         SELECT ip, date(created_at) as day, MAX(ua) as ua, MAX(referrer) as referrer,
+           COUNT(*) as views_today, MAX(created_at) as last_seen
+         FROM events WHERE event='page_view'
+         GROUP BY ip, date(created_at)
+       ) d
+       JOIN (
+         SELECT ip, COUNT(DISTINCT date(created_at)) as total_visits
+         FROM events WHERE event='page_view' GROUP BY ip
+       ) t ON d.ip = t.ip
+       ORDER BY d.last_seen DESC LIMIT 50`,
+      "SELECT date(created_at) as day,COUNT(DISTINCT ip) as views FROM events WHERE event='page_view' AND created_at>=datetime('now','-30 days') GROUP BY day ORDER BY day",
       "SELECT COUNT(*) as n FROM events WHERE event='video_play'",
       `SELECT label, COUNT(*) as total_plays, COUNT(DISTINCT ip) as unique_viewers, MAX(created_at) as last_played,
         SUM(CASE WHEN created_at>=datetime('now','-7 days') THEN 1 ELSE 0 END) as plays_week,
