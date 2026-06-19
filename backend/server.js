@@ -86,6 +86,15 @@ app.use(express.static(join(__dirname, 'public')))
 
 const getIp = req => (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim()
 
+async function getLocation(ip) {
+  if (!ip || /^(::1$|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|::ffff:127\.)/.test(ip)) return ''
+  try {
+    const res = await fetch(`https://ipinfo.io/${ip}/json`)
+    const data = await res.json()
+    return [data.city, data.region, data.country].filter(Boolean).join(', ')
+  } catch { return '' }
+}
+
 // ── Public: Projects ──────────────────────────────
 app.get('/api/projects', async (req, res) => {
   try {
@@ -99,9 +108,11 @@ app.post('/api/track', async (req, res) => {
   const { event, label, referrer, ua } = req.body || {}
   if (!event) return res.status(400).json({ error: 'event required' })
   try {
+    const ip = getIp(req)
+    const location = await getLocation(ip)
     await db.execute({
-      sql: 'INSERT INTO events (event,label,ip,ua,referrer) VALUES (?,?,?,?,?)',
-      args: [event, label || '', getIp(req), ua || req.headers['user-agent'] || '', referrer || ''],
+      sql: 'INSERT INTO events (event,label,ip,ua,referrer,location) VALUES (?,?,?,?,?,?)',
+      args: [event, label || '', ip, ua || req.headers['user-agent'] || '', referrer || '', location],
     })
     res.json({ ok: true })
   } catch (e) { res.status(500).json({ error: e.message }) }
@@ -145,10 +156,10 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       "SELECT COUNT(DISTINCT ip) as n FROM events WHERE event='page_view' AND date(created_at)=date('now')",
       "SELECT COUNT(*) as n FROM (SELECT DISTINCT ip, date(created_at) FROM events WHERE event='page_view' AND created_at>=datetime('now','-7 days'))",
       "SELECT label,COUNT(*) as views FROM events WHERE event='page_view' GROUP BY label ORDER BY views DESC LIMIT 10",
-      `SELECT d.ip, d.day, d.ua, d.referrer, d.views_today, d.last_seen, t.total_visits
+      `SELECT d.ip, d.day, d.ua, d.referrer, d.views_today, d.last_seen, d.location, t.total_visits
        FROM (
          SELECT ip, date(created_at) as day, MAX(ua) as ua, MAX(referrer) as referrer,
-           COUNT(*) as views_today, MAX(created_at) as last_seen
+           COUNT(*) as views_today, MAX(created_at) as last_seen, MAX(location) as location
          FROM events WHERE event='page_view'
          GROUP BY ip, date(created_at)
        ) d
@@ -270,9 +281,10 @@ app.get('/api/health', (req, res) => res.json({ ok: true, ts: new Date().toISOSt
 async function initDb() {
   await db.execute(`CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    event TEXT NOT NULL, label TEXT, ip TEXT, ua TEXT, referrer TEXT,
+    event TEXT NOT NULL, label TEXT, ip TEXT, ua TEXT, referrer TEXT, location TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
   )`)
+  await db.execute(`ALTER TABLE events ADD COLUMN location TEXT DEFAULT ''`).catch(() => {})
   await db.execute(`CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL, email TEXT NOT NULL, company TEXT, service TEXT,

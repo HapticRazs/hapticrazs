@@ -261,7 +261,7 @@ tr:hover td{background:rgba(232,118,64,.03)}
       <div class="card">
         <div class="card-head"><h3>Recent Visitors (last 50)</h3></div>
         <table>
-          <thead><tr><th>Page</th><th>IP</th><th>Referrer</th><th>Device</th><th>Time</th></tr></thead>
+          <thead><tr><th>Page</th><th>IP</th><th>Location</th><th>Referrer</th><th>Device</th><th>Time</th></tr></thead>
           <tbody id="visitors-table"></tbody>
         </table>
       </div>
@@ -459,11 +459,12 @@ function renderStats() {
     ? d.recentVisitors.map(v => `<tr>
         <td><code style="font-size:.72rem;color:#aaa">${v.label||'/'}</code></td>
         <td style="font-family:monospace;font-size:.7rem">${v.ip||'—'}</td>
+        <td style="font-size:.75rem;color:var(--dim)">${v.location||'—'}</td>
         <td style="font-size:.7rem;color:var(--dim);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.referrer||'direct'}</td>
         <td>${parseUA(v.ua)}</td>
-        <td style="white-space:nowrap;font-size:.72rem">${fmtDate(v.created_at)}</td>
+        <td style="white-space:nowrap;font-size:.72rem">${fmtDate(v.last_seen)}</td>
       </tr>`).join('')
-    : `<tr><td colspan="5" class="empty">No visitors yet</td></tr>`
+    : `<tr><td colspan="6" class="empty">No visitors yet</td></tr>`
 
   renderMessages(d.messages)
 }
