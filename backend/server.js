@@ -274,7 +274,10 @@ app.delete('/api/admin/files/:filename', requireAdmin, (req, res) => {
 })
 
 // ── Admin HTML + health ────────────────────────────
-app.get('/admin', (req, res) => res.sendFile(join(__dirname, 'admin.html')))
+app.get('/admin', (req, res) => {
+  res.set('Cache-Control', 'no-store')
+  res.sendFile(join(__dirname, 'admin.html'))
+})
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: new Date().toISOString() }))
 
 // ── DB Init + Start ────────────────────────────────
