@@ -462,7 +462,7 @@ function renderStats() {
         <td style="font-size:.75rem;color:var(--dim)">${v.location||'—'}</td>
         <td style="font-size:.7rem;color:var(--dim);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.referrer||'direct'}</td>
         <td>${parseUA(v.ua)}</td>
-        <td style="white-space:nowrap;font-size:.72rem">${fmtDate(v.last_seen)}</td>
+        <td style="white-space:nowrap;font-size:.72rem;line-height:1.5">${fmtDay(v.last_seen)}<br><span style="color:var(--dim)">${fmtTime(v.last_seen)}</span></td>
       </tr>`).join('')
     : `<tr><td colspan="6" class="empty">No visitors yet</td></tr>`
 
@@ -697,6 +697,20 @@ function parseUA(ua='') {
   if (/Windows/.test(ua)) return '🖥 Windows'
   if (/Linux/.test(ua)) return '🐧 Linux'
   return ua.slice(0,28)
+}
+function fmtDay(d) {
+  if (!d) return '—'
+  try {
+    const dt = new Date(String(d).replace(' ','T') + (String(d).includes('Z') ? '' : 'Z'))
+    return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+  } catch { return String(d) }
+}
+function fmtTime(d) {
+  if (!d) return '—'
+  try {
+    const dt = new Date(String(d).replace(' ','T') + (String(d).includes('Z') ? '' : 'Z'))
+    return dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
+  } catch { return String(d) }
 }
 function fmtDate(d) {
   if (!d) return '—'
