@@ -22,6 +22,20 @@ function fmtDate(d) {
     return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   } catch { return String(d) }
 }
+function fmtDay(d) {
+  if (!d) return '—'
+  try {
+    const dt = new Date(String(d).replace(' ', 'T') + (String(d).includes('Z') ? '' : 'Z'))
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch { return String(d) }
+}
+function fmtTime(d) {
+  if (!d) return '—'
+  try {
+    const dt = new Date(String(d).replace(' ', 'T') + (String(d).includes('Z') ? '' : 'Z'))
+    return dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  } catch { return String(d) }
+}
 
 function fmtSize(b) {
   if (b < 1024) return b + ' B'
@@ -420,20 +434,24 @@ export default function Admin() {
             </div>
             <div className="adm-table-scroll">
               <table className="adm-table">
-                <thead><tr><th>IP</th><th>Device</th><th>Referrer</th><th style={{ textAlign: 'right' }}>Views that day</th><th style={{ textAlign: 'right' }}>Days visited</th><th>Last seen</th></tr></thead>
+                <thead><tr><th>IP</th><th>Location</th><th>Device</th><th>Referrer</th><th style={{ textAlign: 'right' }}>Views that day</th><th style={{ textAlign: 'right' }}>Days visited</th><th>Last seen</th></tr></thead>
                 <tbody>
                   {stats?.recentVisitors.length
                     ? stats.recentVisitors.map((v, i) => (
                         <tr key={i}>
                           <td style={{ fontFamily: 'monospace', fontSize: '.7rem' }}>{v.ip || '—'}</td>
+                          <td style={{ fontSize: '.75rem', color: 'var(--adm-dim)' }}>{v.location || '—'}</td>
                           <td>{parseUA(v.ua)}</td>
                           <td style={{ fontSize: '.7rem', color: 'var(--adm-dim)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.referrer || 'direct'}</td>
                           <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{v.views_today}</td>
                           <td style={{ textAlign: 'right', color: 'var(--adm-orange)', fontWeight: 600 }}>{v.total_visits}</td>
-                          <td style={{ whiteSpace: 'nowrap', fontSize: '.72rem' }}>{fmtDate(v.last_seen)}</td>
+                          <td style={{ whiteSpace: 'nowrap', fontSize: '.72rem', lineHeight: 1.5 }}>
+                            {fmtDay(v.last_seen)}<br />
+                            <span style={{ color: 'var(--adm-dim)' }}>{fmtTime(v.last_seen)}</span>
+                          </td>
                         </tr>
                       ))
-                    : <tr><td colSpan="6" className="adm-empty">No visitors yet</td></tr>
+                    : <tr><td colSpan="7" className="adm-empty">No visitors yet</td></tr>
                   }
                 </tbody>
               </table>
