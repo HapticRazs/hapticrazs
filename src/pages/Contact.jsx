@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { API_BASE } from '../api'
 import './Contact.css'
 
@@ -24,30 +24,25 @@ export default function Contact() {
   })
   const [status, setStatus] = useState(null) // null | 'sending' | 'sent' | 'error'
 
-  useEffect(() => {
-    fetch(`${API_BASE}/api/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'page_view', label: '/contact' }),
-    }).catch(() => {})
-  }, [])
-
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault()
     if (!form.name || !form.email || !form.message) return
     const serviceLabel = services.find(s => s.id === form.service)?.label || ''
-    const subject = encodeURIComponent(`Portfolio Inquiry — ${form.name}${form.company ? ` (${form.company})` : ''}`)
-    const body = encodeURIComponent(
-      `${form.message}\n\n---\nName: ${form.name}\nEmail: ${form.email}` +
-      (form.company ? `\nCompany: ${form.company}` : '') +
-      (serviceLabel ? `\nService: ${serviceLabel}` : '') +
-      (form.budget ? `\nBudget: ${form.budget}` : '')
-    )
-    window.location.href = `mailto:akshatgobind56@gmail.com?subject=${subject}&body=${body}`
-    setStatus('sent')
-    setForm({ name: '', email: '', company: '', service: '', budget: '', message: '' })
+    setStatus('sending')
+    try {
+      const res = await fetch(`${API_BASE}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, service: serviceLabel }),
+      })
+      if (!res.ok) throw new Error('request failed')
+      setStatus('sent')
+      setForm({ name: '', email: '', company: '', service: '', budget: '', message: '' })
+    } catch {
+      setStatus('error')
+    }
   }
 
   return (

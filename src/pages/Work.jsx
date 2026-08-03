@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { API_BASE } from '../api'
+import { useState } from 'react'
+import { track } from '../lib/analytics'
 import './Work.css'
 
 const BEHANCE_TO_YT = {
@@ -15,7 +15,7 @@ const BEHANCE_TO_YT = {
 
 const ALL_PROJECTS = [
   {
-    id: 1, title: 'VFX Reel 2026', subtitle: 'Visual Effects Reel',
+    id: 1, title: 'Demo Reel 2026', subtitle: 'Visual Effects Reel',
     youtubeId: 'juik4TNmWLg', youtubeUrl: 'https://youtu.be/juik4TNmWLg',
     desc: 'Particle simulation, compositing, CGI integration, and fluid dynamics — compiled from 4 years of VFX work.',
     year: '2026', tags: ['vfx', 'reel'],
@@ -197,13 +197,7 @@ function YTThumb({ youtubeId, title }) {
 function WorkCard({ project, delay = 0 }) {
   const href = project.youtubeUrl || project.pbs || project.externalUrl || '#'
 
-  const trackPlay = () => {
-    fetch(`${API_BASE}/api/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'video_play', label: project.title }),
-    }).catch(() => {})
-  }
+  const trackPlay = () => track('video_play', project.title)
 
   return (
     <div className="work-card" style={{ animationDelay: `${delay}ms` }}>
@@ -254,14 +248,6 @@ function WorkCard({ project, delay = 0 }) {
 export default function Work() {
   const [active, setActive] = useState('all')
   const [projects, setProjects] = useState(ALL_PROJECTS.map(normalizeProject))
-
-  useEffect(() => {
-    fetch(`${API_BASE}/api/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'page_view', label: '/work' }),
-    }).catch(() => {})
-  }, [])
 
   const visible = active === 'all'
     ? projects

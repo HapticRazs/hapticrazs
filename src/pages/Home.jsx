@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { API_BASE } from '../api'
+import { track } from '../lib/analytics'
 import './Home.css'
 
 const projects = [
@@ -82,13 +82,7 @@ function ReelCard({ project, delay = 0 }) {
   const [active, setActive] = useState(false)
   const thumb = `https://i.ytimg.com/vi/${project.youtubeId}/mqdefault.jpg`
 
-  const trackPlay = () => {
-    fetch(`${API_BASE}/api/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'video_play', label: project.title }),
-    }).catch(() => {})
-  }
+  const trackPlay = () => track('video_play', project.title)
 
   return (
     <FadeIn delay={delay} className="reel-card-wrap">
@@ -132,7 +126,7 @@ function ReelCard({ project, delay = 0 }) {
 }
 
 const REELS = {
-  vfx:  { id: 'juik4TNmWLg', label: 'VFX Reel 2026',  url: 'https://youtu.be/juik4TNmWLg' },
+  vfx:  { id: 'juik4TNmWLg', label: 'Demo Reel 2026',  url: 'https://youtu.be/juik4TNmWLg' },
   film: { id: 'GClqI5ddfMs', label: 'Film Reel 2026', url: 'https://youtu.be/GClqI5ddfMs' },
 }
 
@@ -143,20 +137,11 @@ export default function Home() {
 
   useEffect(() => {
     const t = setTimeout(() => setHeroIn(true), 200)
-    fetch(`${API_BASE}/api/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'page_view', label: '/' }),
-    }).catch(() => {})
     return () => clearTimeout(t)
   }, [])
 
   const trackFeaturedPlay = () => {
-    fetch(`${API_BASE}/api/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'video_play', label: 'Film Reel 2026 (Featured)' }),
-    }).catch(() => {})
+    track('video_play', 'Film Reel 2026 (Featured)')
   }
 
   return (

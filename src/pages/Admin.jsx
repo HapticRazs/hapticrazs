@@ -37,6 +37,13 @@ function fmtTime(d) {
   } catch { return String(d) }
 }
 
+function fmtDuration(sec) {
+  if (!sec || sec < 1) return '—'
+  const m = Math.floor(sec / 60)
+  const s = Math.round(sec % 60)
+  return m > 0 ? `${m}m ${s}s` : `${s}s`
+}
+
 function fmtSize(b) {
   if (b < 1024) return b + ' B'
   if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'
@@ -283,9 +290,9 @@ export default function Admin() {
         {/* Stat cards */}
         <div className="adm-stat-row">
           {[
-            { label: 'Total Page Views', val: stats?.pageViews.total, sub: 'All time' },
-            { label: 'Today', val: stats?.pageViews.today, sub: 'Page views' },
-            { label: 'This Week', val: stats?.pageViews.week, sub: 'Last 7 days' },
+            { label: 'Total Visits', val: stats?.visits.total, sub: 'All time' },
+            { label: 'Visits Today', val: stats?.visits.today, sub: 'Unique sessions' },
+            { label: 'Visits This Week', val: stats?.visits.week, sub: 'Last 7 days' },
             { label: 'Video Plays', val: stats?.totalVideoPlays, sub: 'All time' },
             { label: 'Unread Messages', val: stats?.unreadMessages, sub: 'New inquiries' },
           ].map(({ label, val, sub }) => (
@@ -314,7 +321,7 @@ export default function Admin() {
           <div>
             <div className="adm-two-col">
               <div className="adm-card">
-                <div className="adm-card-head"><h3>Daily Page Views (30 days)</h3></div>
+                <div className="adm-card-head"><h3>Daily Visits (30 days)</h3></div>
                 <div className="adm-chart-wrap">
                   <BarChart data={stats?.dailyViews} valueKey="views" colorBase="rgba(232,118,64,.35)" colorHover="rgba(232,118,64,.8)" />
                 </div>
@@ -429,21 +436,23 @@ export default function Admin() {
         {activeTab === 'visitors' && (
           <div className="adm-card">
             <div className="adm-card-head">
-              <h3>Unique Visitors (last 50)</h3>
-              <span style={{ fontSize: '.72rem', color: 'var(--adm-muted)' }}>1 IP = 1 visit per day</span>
+              <h3>Recent Visits (last 50)</h3>
+              <span style={{ fontSize: '.72rem', color: 'var(--adm-muted)' }}>1 row = 1 visit (browser session)</span>
             </div>
             <div className="adm-table-scroll">
               <table className="adm-table">
-                <thead><tr><th>IP</th><th>Location</th><th>Device</th><th>Referrer</th><th style={{ textAlign: 'right' }}>Views that day</th><th style={{ textAlign: 'right' }}>Days visited</th><th>Last seen</th></tr></thead>
+                <thead><tr><th>Name</th><th>IP</th><th>Location</th><th>Device</th><th>Referrer</th><th style={{ textAlign: 'right' }}>Pages</th><th style={{ textAlign: 'right' }}>Duration</th><th style={{ textAlign: 'right' }}>Total Visits</th><th>Last seen</th></tr></thead>
                 <tbody>
                   {stats?.recentVisitors.length
                     ? stats.recentVisitors.map((v, i) => (
                         <tr key={i}>
+                          <td style={{ fontSize: '.78rem' }}>{v.visitor_name || <span style={{ color: 'var(--adm-dim)' }}>—</span>}</td>
                           <td style={{ fontFamily: 'monospace', fontSize: '.7rem' }}>{v.ip || '—'}</td>
                           <td style={{ fontSize: '.75rem', color: 'var(--adm-dim)' }}>{v.location || '—'}</td>
                           <td>{parseUA(v.ua)}</td>
                           <td style={{ fontSize: '.7rem', color: 'var(--adm-dim)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.referrer || 'direct'}</td>
-                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{v.views_today}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{v.pages}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{fmtDuration(v.duration_sec)}</td>
                           <td style={{ textAlign: 'right', color: 'var(--adm-orange)', fontWeight: 600 }}>{v.total_visits}</td>
                           <td style={{ whiteSpace: 'nowrap', fontSize: '.72rem', lineHeight: 1.5 }}>
                             {fmtDay(v.last_seen)}<br />
@@ -451,7 +460,7 @@ export default function Admin() {
                           </td>
                         </tr>
                       ))
-                    : <tr><td colSpan="7" className="adm-empty">No visitors yet</td></tr>
+                    : <tr><td colSpan="9" className="adm-empty">No visitors yet</td></tr>
                   }
                 </tbody>
               </table>
@@ -600,7 +609,7 @@ export default function Admin() {
               <div className="adm-form-row">
                 <div className="adm-form-group">
                   <label>Title *</label>
-                  <input required value={form.title} onChange={setF('title')} placeholder="VFX Reel 2027" />
+                  <input required value={form.title} onChange={setF('title')} placeholder="Demo Reel 2027" />
                 </div>
                 <div className="adm-form-group">
                   <label>Subtitle</label>

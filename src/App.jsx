@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
-import { API_BASE } from './api'
+import { useEffect, useRef } from 'react'
+import { track, startHeartbeat } from './lib/analytics'
 import Cursor from './components/Cursor'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -13,19 +13,16 @@ import Admin from './pages/Admin'
 
 function Analytics() {
   const location = useLocation()
+  const pathRef = useRef(location.pathname)
+  pathRef.current = location.pathname
+
   useEffect(() => {
     if (location.pathname === '/admin') return
-    fetch(`${API_BASE}/api/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event: 'page_view',
-        label: location.pathname,
-        referrer: document.referrer,
-        ua: navigator.userAgent,
-      }),
-    }).catch(() => {})
+    track('page_view', location.pathname)
   }, [location.pathname])
+
+  useEffect(() => startHeartbeat(() => pathRef.current), [])
+
   return null
 }
 

@@ -105,14 +105,14 @@ app.get('/api/projects', async (req, res) => {
 
 // ── Public: Track event ────────────────────────────
 app.post('/api/track', async (req, res) => {
-  const { event, label, referrer, ua } = req.body || {}
+  const { event, label, referrer, ua, session_id } = req.body || {}
   if (!event) return res.status(400).json({ error: 'event required' })
   try {
     const ip = getIp(req)
     const location = await getLocation(ip)
     await db.execute({
-      sql: 'INSERT INTO events (event,label,ip,ua,referrer,location) VALUES (?,?,?,?,?,?)',
-      args: [event, label || '', ip, ua || req.headers['user-agent'] || '', referrer || '', location],
+      sql: 'INSERT INTO events (event,label,ip,ua,referrer,location,session_id) VALUES (?,?,?,?,?,?,?)',
+      args: [event, label || '', ip, ua || req.headers['user-agent'] || '', referrer || '', location, session_id || ''],
     })
     res.json({ ok: true })
   } catch (e) { res.status(500).json({ error: e.message }) }
@@ -146,29 +146,40 @@ function requireAdmin(req, res, next) {
 // ── Admin: Stats ──────────────────────────────────
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
+    // A "visit"/session = one session_id (falls back to ip+day for pre-session_id legacy rows)
+    const SID = `COALESCE(NULLIF(session_id,''), ip || ':' || date(created_at))`
+
     const [
       pvTotalR, pvTodayR, pvWeekR,
+      visitsTotalR, visitsTodayR, visitsWeekR,
       topPagesR, recentVisitorsR, dailyViewsR,
       totalVideoPlaysR, videoBreakdownR, dailyVideoPlaysR, recentVideoPlaysR,
       messagesR, unreadR,
     ] = await db.batch([
-      "SELECT COUNT(*) as n FROM (SELECT DISTINCT ip, date(created_at) FROM events WHERE event='page_view')",
-      "SELECT COUNT(DISTINCT ip) as n FROM events WHERE event='page_view' AND date(created_at)=date('now')",
-      "SELECT COUNT(*) as n FROM (SELECT DISTINCT ip, date(created_at) FROM events WHERE event='page_view' AND created_at>=datetime('now','-7 days'))",
+      "SELECT COUNT(*) as n FROM events WHERE event='page_view'",
+      "SELECT COUNT(*) as n FROM events WHERE event='page_view' AND date(created_at)=date('now')",
+      "SELECT COUNT(*) as n FROM events WHERE event='page_view' AND created_at>=datetime('now','-7 days')",
+      `SELECT COUNT(DISTINCT ${SID}) as n FROM events WHERE event IN ('page_view','heartbeat')`,
+      `SELECT COUNT(DISTINCT ${SID}) as n FROM events WHERE event IN ('page_view','heartbeat') AND date(created_at)=date('now')`,
+      `SELECT COUNT(DISTINCT ${SID}) as n FROM events WHERE event IN ('page_view','heartbeat') AND created_at>=datetime('now','-7 days')`,
       "SELECT label,COUNT(*) as views FROM events WHERE event='page_view' GROUP BY label ORDER BY views DESC LIMIT 10",
-      `SELECT d.ip, d.day, d.ua, d.referrer, d.views_today, d.last_seen, d.location, t.total_visits
+      `SELECT s.ip, s.ua, s.referrer, s.location, s.last_seen, s.pages, s.duration_sec,
+          (SELECT name FROM messages WHERE messages.ip = s.ip ORDER BY created_at DESC LIMIT 1) as visitor_name,
+          t.total_visits
        FROM (
-         SELECT ip, date(created_at) as day, MAX(ua) as ua, MAX(referrer) as referrer,
-           COUNT(*) as views_today, MAX(created_at) as last_seen, MAX(location) as location
-         FROM events WHERE event='page_view'
-         GROUP BY ip, date(created_at)
-       ) d
+         SELECT ${SID} as sid, ip, MAX(ua) as ua, MAX(referrer) as referrer, MAX(location) as location,
+           MAX(created_at) as last_seen,
+           SUM(CASE WHEN event='page_view' THEN 1 ELSE 0 END) as pages,
+           CAST((julianday(MAX(created_at)) - julianday(MIN(created_at))) * 86400 AS INTEGER) as duration_sec
+         FROM events WHERE event IN ('page_view','heartbeat')
+         GROUP BY sid
+       ) s
        JOIN (
-         SELECT ip, COUNT(DISTINCT date(created_at)) as total_visits
-         FROM events WHERE event='page_view' GROUP BY ip
-       ) t ON d.ip = t.ip
-       ORDER BY d.last_seen DESC LIMIT 50`,
-      "SELECT date(created_at) as day,COUNT(DISTINCT ip) as views FROM events WHERE event='page_view' AND created_at>=datetime('now','-30 days') GROUP BY day ORDER BY day",
+         SELECT ip, COUNT(DISTINCT ${SID}) as total_visits
+         FROM events WHERE event IN ('page_view','heartbeat') GROUP BY ip
+       ) t ON t.ip = s.ip
+       ORDER BY s.last_seen DESC LIMIT 50`,
+      `SELECT date(created_at) as day, COUNT(DISTINCT ${SID}) as views FROM events WHERE event IN ('page_view','heartbeat') AND created_at>=datetime('now','-30 days') GROUP BY day ORDER BY day`,
       "SELECT COUNT(*) as n FROM events WHERE event='video_play'",
       `SELECT label, COUNT(*) as total_plays, COUNT(DISTINCT ip) as unique_viewers, MAX(created_at) as last_played,
         SUM(CASE WHEN created_at>=datetime('now','-7 days') THEN 1 ELSE 0 END) as plays_week,
@@ -185,6 +196,11 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
         total: Number(pvTotalR.rows[0].n),
         today: Number(pvTodayR.rows[0].n),
         week: Number(pvWeekR.rows[0].n),
+      },
+      visits: {
+        total: Number(visitsTotalR.rows[0].n),
+        today: Number(visitsTodayR.rows[0].n),
+        week: Number(visitsWeekR.rows[0].n),
       },
       topPages: topPagesR.rows,
       recentVisitors: recentVisitorsR.rows,
@@ -288,6 +304,7 @@ async function initDb() {
     created_at TEXT DEFAULT (datetime('now'))
   )`)
   await db.execute(`ALTER TABLE events ADD COLUMN location TEXT DEFAULT ''`).catch(() => {})
+  await db.execute(`ALTER TABLE events ADD COLUMN session_id TEXT DEFAULT ''`).catch(() => {})
   await db.execute(`CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL, email TEXT NOT NULL, company TEXT, service TEXT,
@@ -310,7 +327,7 @@ async function initDb() {
   const { rows } = await db.execute('SELECT COUNT(*) as n FROM projects')
   if (Number(rows[0].n) === 0) {
     const seed = [
-      ['VFX Reel 2026','Visual Effects Reel','VFX',2026,'Particle simulation, compositing, CGI integration, and fluid dynamics — compiled from 4 years of VFX work.','218145705','https://www.behance.net/gallery/218145705/VFXReel2026_AkshatGobind','','','','["vfx","reel"]',1,1],
+      ['Demo Reel 2026','Visual Effects Reel','VFX',2026,'Particle simulation, compositing, CGI integration, and fluid dynamics — compiled from 4 years of VFX work.','218145705','https://www.behance.net/gallery/218145705/VFXReel2026_AkshatGobind','','','','["vfx","reel"]',1,1],
       ['Film Reel 2026','Cinematography & Directing','Film',2026,'Arri Alexa Mini, RED Cameras, multi-camera productions, narrative shorts, and commercial work.','240308603','https://www.behance.net/gallery/240308603/FilmReel2026_AkshatGobind','','','','["film","reel"]',1,2],
       ['Resurgence — Breakdown','Short Film VFX Breakdown','VFX',2025,'Shot-by-shot VFX breakdown of a short sci-fi film — compositing, particles, CG environment integration.','239924089','https://www.behance.net/gallery/239924089/ResurgenceShortFilm_Breakdown','','https://www.imdb.com/title/tt37960145/','','["vfx","breakdown"]',0,3],
       ['Awakening','Senior Capstone — VFX','VFX',2024,'Houdini particles & Nuke compositing — senior capstone project.','217317013','https://www.behance.net/gallery/217317013/Awakening','','','','["vfx"]',0,4],
