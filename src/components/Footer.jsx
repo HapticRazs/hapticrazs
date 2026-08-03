@@ -31,7 +31,7 @@ export default function Footer() {
             />
             <div>
               <p className="footer__name">Haptic Razs</p>
-              <p className="footer__tagline">VFX Artist & Filmmaker · SCAD 2022 – 2026</p>
+              <p className="footer__tagline">Artist & Filmmaker · SCAD 2022 – 2026</p>
             </div>
           </div>
 

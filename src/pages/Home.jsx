@@ -151,7 +151,7 @@ export default function Home() {
       <section className="hero">
         <div className={`hero__text${heroIn ? ' hero__text--in' : ''}`}>
           <p className="hero__eyebrow">Akshat Gobind · SCAD 2026</p>
-          <h1 className="hero__title">VFX Artist &amp; Filmmaker</h1>
+          <h1 className="hero__title">Artist &amp; Filmmaker</h1>
           <p className="hero__sub">VFX Supervisor | Compositor | Director | Cinematographer</p>
           <div className="hero__actions">
             <Link to="/work" className="btn btn--primary">View All Work</Link>
