@@ -116,6 +116,9 @@ export default function Admin() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [uploadMsg, setUploadMsg] = useState(null)
   const [dragOver, setDragOver] = useState(false)
+  const [visitors, setVisitors] = useState(null)
+  const [visitorsPage, setVisitorsPage] = useState(1)
+  const [visitorsLoading, setVisitorsLoading] = useState(false)
   const fileInputRef = useRef()
   const authedPwd = useRef('')
 
@@ -127,6 +130,15 @@ export default function Admin() {
       setStats(await r.json())
       setLastUpdated(new Date())
     } catch { /* backend offline */ }
+  }, [getHdrs])
+
+  const loadVisitors = useCallback(async (page = 1) => {
+    setVisitorsLoading(true)
+    try {
+      const r = await fetch(`${API_BASE}/api/admin/visitors?page=${page}&pageSize=25`, { headers: getHdrs() })
+      setVisitors(await r.json())
+      setVisitorsPage(page)
+    } catch { /* */ } finally { setVisitorsLoading(false) }
   }, [getHdrs])
 
   const loadProjects = useCallback(async () => {
@@ -151,6 +163,10 @@ export default function Admin() {
     const iv = setInterval(loadStats, 30000)
     return () => clearInterval(iv)
   }, [authed, loadAll, loadStats])
+
+  useEffect(() => {
+    if (authed && activeTab === 'visitors' && !visitors) loadVisitors(1)
+  }, [authed, activeTab, visitors, loadVisitors])
 
   async function login() {
     setLoginErr('')
@@ -282,7 +298,7 @@ export default function Admin() {
         <div className="adm-logo">Haptic <span className="adm-grad">Razs</span> Admin</div>
         <div className="adm-header-right">
           {lastUpdated && <span className="adm-meta">Updated {lastUpdated.toLocaleTimeString()}</span>}
-          <button className="adm-btn-ghost" onClick={loadAll}>↻ Refresh</button>
+          <button className="adm-btn-ghost" onClick={() => { loadAll(); if (activeTab === 'visitors') loadVisitors(visitorsPage) }}>↻ Refresh</button>
         </div>
       </header>
 
@@ -436,23 +452,24 @@ export default function Admin() {
         {activeTab === 'visitors' && (
           <div className="adm-card">
             <div className="adm-card-head">
-              <h3>Recent Visits (last 50)</h3>
-              <span style={{ fontSize: '.72rem', color: 'var(--adm-muted)' }}>1 row = 1 visit (browser session)</span>
+              <h3>Visitors {visitors ? `(${visitors.total} total)` : ''}</h3>
+              <span style={{ fontSize: '.72rem', color: 'var(--adm-muted)' }}>1 row = 1 IP, all visits combined</span>
             </div>
             <div className="adm-table-scroll">
               <table className="adm-table">
-                <thead><tr><th>Name</th><th>IP</th><th>Location</th><th>Device</th><th>Referrer</th><th style={{ textAlign: 'right' }}>Pages</th><th style={{ textAlign: 'right' }}>Duration</th><th style={{ textAlign: 'right' }}>Total Visits</th><th>Last seen</th></tr></thead>
+                <thead><tr><th>Name</th><th>IP</th><th>Location</th><th>Device</th><th>Referrer</th><th style={{ textAlign: 'right' }}>Pages</th><th style={{ textAlign: 'right' }}>Avg Duration</th><th style={{ textAlign: 'right' }}>Visits Today</th><th style={{ textAlign: 'right' }}>Total Visits</th><th>Last seen</th></tr></thead>
                 <tbody>
-                  {stats?.recentVisitors.length
-                    ? stats.recentVisitors.map((v, i) => (
+                  {visitors?.rows.length
+                    ? visitors.rows.map((v, i) => (
                         <tr key={i}>
                           <td style={{ fontSize: '.78rem' }}>{v.visitor_name || <span style={{ color: 'var(--adm-dim)' }}>—</span>}</td>
                           <td style={{ fontFamily: 'monospace', fontSize: '.7rem' }}>{v.ip || '—'}</td>
                           <td style={{ fontSize: '.75rem', color: 'var(--adm-dim)' }}>{v.location || '—'}</td>
                           <td>{parseUA(v.ua)}</td>
                           <td style={{ fontSize: '.7rem', color: 'var(--adm-dim)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.referrer || 'direct'}</td>
-                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{v.pages}</td>
-                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{fmtDuration(v.duration_sec)}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{v.total_pages}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{fmtDuration(v.avg_duration_sec)}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--adm-muted)', fontSize: '.75rem' }}>{v.visits_today}</td>
                           <td style={{ textAlign: 'right', color: 'var(--adm-orange)', fontWeight: 600 }}>{v.total_visits}</td>
                           <td style={{ whiteSpace: 'nowrap', fontSize: '.72rem', lineHeight: 1.5 }}>
                             {fmtDay(v.last_seen)}<br />
@@ -460,11 +477,32 @@ export default function Admin() {
                           </td>
                         </tr>
                       ))
-                    : <tr><td colSpan="9" className="adm-empty">No visitors yet</td></tr>
+                    : <tr><td colSpan="10" className="adm-empty">{visitorsLoading ? 'Loading…' : 'No visitors yet'}</td></tr>
                   }
                 </tbody>
               </table>
             </div>
+            {visitors && visitors.totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '.75rem', padding: '1rem' }}>
+                <button
+                  className="adm-btn-ghost"
+                  disabled={visitorsPage <= 1 || visitorsLoading}
+                  onClick={() => loadVisitors(visitorsPage - 1)}
+                >
+                  ← Prev
+                </button>
+                <span style={{ fontSize: '.78rem', color: 'var(--adm-muted)' }}>
+                  Page {visitorsPage} of {visitors.totalPages}
+                </span>
+                <button
+                  className="adm-btn-ghost"
+                  disabled={visitorsPage >= visitors.totalPages || visitorsLoading}
+                  onClick={() => loadVisitors(visitorsPage + 1)}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         )}
 

@@ -152,7 +152,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     const [
       pvTotalR, pvTodayR, pvWeekR,
       visitsTotalR, visitsTodayR, visitsWeekR,
-      topPagesR, recentVisitorsR, dailyViewsR,
+      topPagesR, dailyViewsR,
       totalVideoPlaysR, videoBreakdownR, dailyVideoPlaysR, recentVideoPlaysR,
       messagesR, unreadR,
     ] = await db.batch([
@@ -163,22 +163,6 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       `SELECT COUNT(DISTINCT ${SID}) as n FROM events WHERE event IN ('page_view','heartbeat') AND date(created_at)=date('now')`,
       `SELECT COUNT(DISTINCT ${SID}) as n FROM events WHERE event IN ('page_view','heartbeat') AND created_at>=datetime('now','-7 days')`,
       "SELECT label,COUNT(*) as views FROM events WHERE event='page_view' GROUP BY label ORDER BY views DESC LIMIT 10",
-      `SELECT s.ip, s.ua, s.referrer, s.location, s.last_seen, s.pages, s.duration_sec,
-          (SELECT name FROM messages WHERE messages.ip = s.ip ORDER BY created_at DESC LIMIT 1) as visitor_name,
-          t.total_visits
-       FROM (
-         SELECT ${SID} as sid, ip, MAX(ua) as ua, MAX(referrer) as referrer, MAX(location) as location,
-           MAX(created_at) as last_seen,
-           SUM(CASE WHEN event='page_view' THEN 1 ELSE 0 END) as pages,
-           CAST((julianday(MAX(created_at)) - julianday(MIN(created_at))) * 86400 AS INTEGER) as duration_sec
-         FROM events WHERE event IN ('page_view','heartbeat')
-         GROUP BY sid
-       ) s
-       JOIN (
-         SELECT ip, COUNT(DISTINCT ${SID}) as total_visits
-         FROM events WHERE event IN ('page_view','heartbeat') GROUP BY ip
-       ) t ON t.ip = s.ip
-       ORDER BY s.last_seen DESC LIMIT 50`,
       `SELECT date(created_at) as day, COUNT(DISTINCT ${SID}) as views FROM events WHERE event IN ('page_view','heartbeat') AND created_at>=datetime('now','-30 days') GROUP BY day ORDER BY day`,
       "SELECT COUNT(*) as n FROM events WHERE event='video_play'",
       `SELECT label, COUNT(*) as total_plays, COUNT(DISTINCT ip) as unique_viewers, MAX(created_at) as last_played,
@@ -203,7 +187,6 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
         week: Number(visitsWeekR.rows[0].n),
       },
       topPages: topPagesR.rows,
-      recentVisitors: recentVisitorsR.rows,
       dailyViews: dailyViewsR.rows,
       totalVideoPlays: Number(totalVideoPlaysR.rows[0].n),
       videoBreakdown: videoBreakdownR.rows,
@@ -212,6 +195,48 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
       messages: messagesR.rows,
       unreadMessages: Number(unreadR.rows[0].n),
     })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// ── Admin: Visitors (paginated, grouped by IP) ─────
+app.get('/api/admin/visitors', requireAdmin, async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize) || 25))
+    const offset = (page - 1) * pageSize
+    const SID = `COALESCE(NULLIF(session_id,''), ip || ':' || date(created_at))`
+
+    const [countR, rowsR] = await db.batch([
+      `SELECT COUNT(DISTINCT ip) as n FROM events WHERE event IN ('page_view','heartbeat')`,
+      {
+        sql: `SELECT v.ip, v.ua, v.referrer, v.location, v.last_seen,
+                v.total_visits, v.visits_today, v.total_pages, v.avg_duration_sec,
+                (SELECT name FROM messages WHERE messages.ip = v.ip ORDER BY created_at DESC LIMIT 1) as visitor_name
+              FROM (
+                SELECT ip, MAX(ua) as ua, MAX(referrer) as referrer, MAX(location) as location,
+                  MAX(last_seen) as last_seen,
+                  COUNT(*) as total_visits,
+                  SUM(CASE WHEN date(last_seen)=date('now') THEN 1 ELSE 0 END) as visits_today,
+                  SUM(pages) as total_pages,
+                  AVG(duration_sec) as avg_duration_sec
+                FROM (
+                  SELECT ${SID} as sid, ip, MAX(ua) as ua, MAX(referrer) as referrer, MAX(location) as location,
+                    MAX(created_at) as last_seen,
+                    SUM(CASE WHEN event='page_view' THEN 1 ELSE 0 END) as pages,
+                    CAST((julianday(MAX(created_at)) - julianday(MIN(created_at))) * 86400 AS INTEGER) as duration_sec
+                  FROM events WHERE event IN ('page_view','heartbeat')
+                  GROUP BY sid
+                )
+                GROUP BY ip
+              ) v
+              ORDER BY v.last_seen DESC
+              LIMIT ? OFFSET ?`,
+        args: [pageSize, offset],
+      },
+    ], 'read')
+
+    const total = Number(countR.rows[0].n)
+    res.json({ rows: rowsR.rows, page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) })
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
