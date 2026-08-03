@@ -290,9 +290,9 @@ export default function Admin() {
         {/* Stat cards */}
         <div className="adm-stat-row">
           {[
-            { label: 'Total Visits', val: stats?.visits.total, sub: 'All time' },
-            { label: 'Visits Today', val: stats?.visits.today, sub: 'Unique sessions' },
-            { label: 'Visits This Week', val: stats?.visits.week, sub: 'Last 7 days' },
+            { label: 'Total Visits', val: stats?.visits?.total, sub: 'All time' },
+            { label: 'Visits Today', val: stats?.visits?.today, sub: 'Unique sessions' },
+            { label: 'Visits This Week', val: stats?.visits?.week, sub: 'Last 7 days' },
             { label: 'Video Plays', val: stats?.totalVideoPlays, sub: 'All time' },
             { label: 'Unread Messages', val: stats?.unreadMessages, sub: 'New inquiries' },
           ].map(({ label, val, sub }) => (
