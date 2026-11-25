@@ -126,7 +126,7 @@ function ReelCard({ project, delay = 0 }) {
 }
 
 const REELS = {
-  vfx:  { id: '08c3BIuRKxs', label: 'Demo Reel 2026',  url: 'https://youtu.be/08c3BIuRKxs' },
+  vfx:  { id: '_SdAE7znrxk', label: 'Demo Reel 2026',  url: 'https://youtu.be/_SdAE7znrxk' },
   film: { id: 'GClqI5ddfMs', label: 'Film Reel 2026', url: 'https://youtu.be/GClqI5ddfMs' },
 }
 

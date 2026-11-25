@@ -3,7 +3,7 @@ import { track } from '../lib/analytics'
 import './Work.css'
 
 const BEHANCE_TO_YT = {
-  '218145705': '08c3BIuRKxs',
+  '218145705': '_SdAE7znrxk',
   '240308603': 'GClqI5ddfMs',
   '239924089': 'qJoO3b8RbuU',
   '217317013': 'KkFFgawtzpQ',
@@ -16,7 +16,7 @@ const BEHANCE_TO_YT = {
 const ALL_PROJECTS = [
   {
     id: 1, title: 'Demo Reel 2026', subtitle: 'Visual Effects Reel',
-    youtubeId: '08c3BIuRKxs', youtubeUrl: 'https://youtu.be/08c3BIuRKxs',
+    youtubeId: '_SdAE7znrxk', youtubeUrl: 'https://youtu.be/_SdAE7znrxk',
     desc: 'Particle simulation, compositing, CGI integration, and fluid dynamics — compiled from 4 years of VFX work.',
     year: '2026', tags: ['vfx', 'reel'],
   },
