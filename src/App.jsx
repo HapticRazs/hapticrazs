@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
 import { track, startHeartbeat } from './lib/analytics'
-import Cursor from './components/Cursor'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home'
@@ -29,7 +28,6 @@ function Analytics() {
 function MainLayout() {
   return (
     <>
-      <Cursor />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />

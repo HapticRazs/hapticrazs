@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './Resume.css'
 
 const FEATURED = {
-  vfx:  { id: 'juik4TNmWLg', title: 'Demo Reel 2026' },
+  vfx:  { id: '08c3BIuRKxs', title: 'Demo Reel 2026' },
   film: { id: 'GClqI5ddfMs', title: 'Film Reel 2026' },
 }
 
